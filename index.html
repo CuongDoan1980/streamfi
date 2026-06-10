@@ -398,7 +398,7 @@ body.lang-es [data-vi]{display:none;}body.lang-es [data-es]{display:revert;}
   <div class="live-mockup">
     <div class="mockup-top">
       <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-      <span style="font-size:13px;color:var(--muted);margin-left:8px;">https://livepeercdn.studio/hls/b5b5nslpak0wwaec/index.m3u8</span>
+      <span style="font-size:13px;color:var(--muted);margin-left:8px;">streamfi.app/live/nguyenminh</span>
       <div class="live-badge"><div class="live-dot"></div>LIVE</div>
     </div>
     <div class="mockup-body">
@@ -505,6 +505,38 @@ body.lang-es [data-vi]{display:none;}body.lang-es [data-es]{display:revert;}
       </ul>
     </div>
   </div>
+  <!-- Task buttons for logged in users -->
+  <div id="taskButtons" style="display:none;max-width:600px;margin:0 auto 32px;display:none;">
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;text-align:center;">
+        <span data-vi>✅ Hoàn thành nhiệm vụ để nhận điểm</span>
+        <span data-en>✅ Complete tasks to earn points</span>
+        <span data-ja>✅ タスクを完了してポイントを獲得</span>
+        <span data-ko>✅ 작업 완료하여 포인트 획득</span>
+        <span data-zh>✅ 完成任务获得积分</span>
+        <span data-es>✅ Completa tareas para ganar puntos</span>
+      </h3>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('twitter','Follow Twitter/X',100)">
+          𝕏 <span data-vi>Follow Twitter/X dự án</span><span data-en>Follow project Twitter/X</span><span data-ja>Twitter/Xをフォロー</span><span data-ko>Twitter/X 팔로우</span><span data-zh>关注Twitter/X</span><span data-es>Seguir Twitter/X</span>
+          <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+100pts</span>
+        </button>
+        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('discord','Join Discord',150)">
+          ⚔ <span data-vi>Tham gia Discord</span><span data-en>Join Discord</span><span data-ja>Discordに参加</span><span data-ko>Discord 참여</span><span data-zh>加入Discord</span><span data-es>Unirse al Discord</span>
+          <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+150pts</span>
+        </button>
+        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('retweet','Retweet post',100)">
+          🔁 <span data-vi>Like + Retweet bài viết</span><span data-en>Like + Retweet post</span><span data-ja>いいね＆リツイート</span><span data-ko>좋아요+리트윗</span><span data-zh>点赞+转发</span><span data-es>Like + Retweet</span>
+          <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+100pts</span>
+        </button>
+        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('telegram','Join Telegram',150)">
+          ✈ <span data-vi>Tham gia Telegram</span><span data-en>Join Telegram</span><span data-ja>Telegramに参加</span><span data-ko>Telegram 참여</span><span data-zh>加入Telegram</span><span data-es>Unirse al Telegram</span>
+          <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+150pts</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <button class="airdrop-cta-btn" onclick="openLoginModal()">
     🪂 <span data-vi>Đăng nhập & Nhận Airdrop ngay</span><span data-en>Sign In & Join Airdrop Now</span><span data-ja>サインイン＆エアドロップ参加</span><span data-ko>로그인 & 에어드롭 참여</span><span data-zh>登录并立即参与空投</span><span data-es>Inicia sesión y únete al Airdrop</span>
   </button>
@@ -573,8 +605,59 @@ body.lang-es [data-vi]{display:none;}body.lang-es [data-es]{display:revert;}
 <script>
 // ============ CONFIG ============
 const PRIVY_APP_ID = 'cmq7mwd29006q0ckvxsk5odjs';
-const SCFI_CONTRACT = ''; // paste your SCFI contract address here
+const SCFI_CONTRACT = '';
+const SUPABASE_URL = 'https://zjsiicjywpqjvpgkxgzx.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpqc2lpY2p5d3BxanZwZ2t4Z3p4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyNjZDMzEsImV4cCI6MjA2Mzg0MjMzMX0._1rRuEp6wkXHkdqU-2rNf-FxBVMbuuo6A0ZtBy9wYtY';
 // ================================
+
+// Supabase: lưu user mới
+async function saveUserToSupabase(user) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': 'Bearer ' + SUPABASE_KEY,
+        'Prefer': 'resolution=merge-duplicates'
+      },
+      body: JSON.stringify({
+        email: user.email || null,
+        wallet_address: user.address,
+        tier: 1,
+        points: 500,
+        username: user.name,
+        provider: user.provider
+      })
+    });
+    if (res.ok || res.status === 201) {
+      showToast('🎉 Đăng ký thành công! +500 điểm Airdrop Tier 1!');
+    }
+  } catch(e) { console.log('Supabase:', e); }
+}
+
+// Supabase: cộng điểm khi hoàn thành nhiệm vụ
+async function addAirdropPoints(walletAddress, points, taskName) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/users?wallet_address=eq.${walletAddress}&select=points`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    const data = await res.json();
+    if (data && data[0]) {
+      const newPoints = (data[0].points || 0) + points;
+      await fetch(`${SUPABASE_URL}/rest/v1/users?wallet_address=eq.${walletAddress}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY
+        },
+        body: JSON.stringify({ points: newPoints })
+      });
+      showToast('✅ ' + taskName + ' +' + points + ' điểm!');
+    }
+  } catch(e) { console.log('Points error:', e); }
+}
 
 // State
 let currentUser = null;
@@ -652,7 +735,13 @@ function onLoginSuccess(user) {
     document.getElementById(id).disabled = false;
   });
 
+  // Show task buttons
+  const tb = document.getElementById('taskButtons');
+  if (tb) tb.style.display = 'block';
+
   showToast('✅ Đăng nhập thành công! Chào ' + user.name);
+  // Lưu vào Supabase
+  saveUserToSupabase(user);
 }
 
 function logoutUser() {
@@ -696,6 +785,29 @@ function sendGift(amount, emoji) {
   vc.textContent = (cur + Math.floor(Math.random()*3+1)).toLocaleString();
 
   showToast(emoji + ' Donated ' + amount + ' SCFI! Còn lại: ' + userWalletBalance.toLocaleString() + ' SCFI');
+}
+
+// Task completion
+const completedTasks = new Set();
+function doTask(taskId, taskName, points) {
+  if (!currentUser) { openLoginModal(); return; }
+  if (completedTasks.has(taskId)) {
+    showToast('⚠️ Bạn đã hoàn thành nhiệm vụ này rồi!');
+    return;
+  }
+  completedTasks.add(taskId);
+  userWalletBalance += points * 10;
+  document.getElementById('userBal').textContent = userWalletBalance.toLocaleString() + ' SCFI';
+  document.getElementById('walletBalance').textContent = userWalletBalance.toLocaleString() + ' SCFI';
+  addAirdropPoints(currentUser.address, points, taskName);
+  // Open relevant link
+  const links = {
+    'twitter': 'https://twitter.com',
+    'discord': 'https://discord.com',
+    'retweet': 'https://twitter.com',
+    'telegram': 'https://t.me'
+  };
+  if (links[taskId]) window.open(links[taskId], '_blank');
 }
 
 // Init — disable donate buttons until login
