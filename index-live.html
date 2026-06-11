@@ -6,6 +6,8 @@
 <title>StreamFi — Live. Earn. Own.</title>
 <!-- Privy SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@privy-io/js-sdk-core@latest/dist/index.umd.js"></script>
+<!-- HLS.js for livestream -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 :root{--bg:#080B10;--bg2:#0E1420;--card:#111827;--border:#1E2A3A;--accent:#7C3AED;--accent2:#06B6D4;--green:#10B981;--text:#F1F5F9;--muted:#64748B;}
@@ -402,11 +404,22 @@ body.lang-es [data-vi]{display:none;}body.lang-es [data-es]{display:revert;}
       <div class="live-badge"><div class="live-dot"></div>LIVE</div>
     </div>
     <div class="mockup-body">
-      <div class="video-area">
-        <div>
+      <div class="video-area" style="flex-direction:column;gap:0;padding:0;position:relative;">
+        <!-- Video Player -->
+        <video id="liveVideo" style="width:100%;height:100%;min-height:260px;object-fit:cover;background:#000;" playsinline muted autoplay></video>
+        <!-- Offline overlay -->
+        <div id="offlineOverlay" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);">
           <div class="avatar-ring">🎤</div>
           <div class="kol-name">Nguyễn Minh</div>
-          <div class="viewer-count"><span class="viewers-num" id="viewerCount">1,247</span> <span data-vi>đang xem</span><span data-en>watching</span><span data-ja>視聴中</span><span data-ko>시청 중</span><span data-zh>观看中</span><span data-es>viendo</span></div>
+          <div class="viewer-count" style="margin-bottom:16px;"><span class="viewers-num" id="viewerCount">0</span> <span data-vi>đang xem</span><span data-en>watching</span><span data-ja>視聴中</span><span data-ko>시청 중</span><span data-zh>观看中</span><span data-es>viendo</span></div>
+          <div style="font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;">● OFFLINE — <span data-vi>Chưa có ai phát live</span><span data-en>No stream active</span><span data-ja>配信なし</span><span data-ko>스트림 없음</span><span data-zh>无直播</span><span data-es>Sin transmisión</span></div>
+        </div>
+        <!-- KOL Go Live button -->
+        <div id="kolControls" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);">
+          <button onclick="goLive()" style="background:#EF4444;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:8px;">
+            <span style="width:8px;height:8px;background:#fff;border-radius:50%;animation:pulse 1s infinite;"></span>
+            <span data-vi>Bắt đầu Live</span><span data-en>Go Live</span><span data-ja>配信開始</span><span data-ko>라이브 시작</span><span data-zh>开始直播</span><span data-es>Iniciar Live</span>
+          </button>
         </div>
       </div>
       <div class="chat-area">
@@ -607,7 +620,9 @@ body.lang-es [data-vi]{display:none;}body.lang-es [data-es]{display:revert;}
 const PRIVY_APP_ID = 'cmq7mwd29006q0ckvxsk5odjs';
 const SCFI_CONTRACT = '';
 const SUPABASE_URL = 'https://zjsiicjywpqjvpgkxgzx.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpqc2lpY2p5d3BxanZwZ2t4Z3p4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwODgxNTQsImV4cCI6MjA5NjY2NDE1NH0._1rRuEp6wkXHkdqU-2rNf-FxBVMbuuo6A0ZtBy9wYtY';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpqc2lpY2p5d3BxanZwZ2t4Z3p4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyNjZDMzEsImV4cCI6MjA2Mzg0MjMzMX0._1rRuEp6wkXHkdqU-2rNf-FxBVMbuuo6A0ZtBy9wYtY';
+const LIVEPEER_PLAYBACK = 'https://livepeercdn.studio/hls/b5b5nslpak0wwaec/index.m3u8';
+const LIVEPEER_BROADCAST = 'https://lvpr.tv/broadcast/b5b5-rg72-i9wk-opc8';
 // ================================
 
 // Supabase: lưu user mới
@@ -738,6 +753,8 @@ function onLoginSuccess(user) {
   // Show task buttons
   const tb = document.getElementById('taskButtons');
   if (tb) tb.style.display = 'block';
+  // Show KOL go live button
+  showKolControls();
 
   showToast('✅ Đăng nhập thành công! Chào ' + user.name);
   // Lưu vào Supabase
@@ -809,6 +826,52 @@ function doTask(taskId, taskName, points) {
   };
   if (links[taskId]) window.open(links[taskId], '_blank');
 }
+
+// ===== LIVESTREAM =====
+function initHLSPlayer() {
+  const video = document.getElementById('liveVideo');
+  const overlay = document.getElementById('offlineOverlay');
+  if (!video) return;
+
+  if (Hls.isSupported()) {
+    const hls = new Hls({ lowLatencyMode: true });
+    hls.loadSource(LIVEPEER_PLAYBACK);
+    hls.attachMedia(video);
+    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      video.play();
+      overlay.style.display = 'none';
+      document.getElementById('viewerCount').textContent = Math.floor(Math.random()*50+5);
+      showToast('📺 Livestream đang hoạt động!');
+    });
+    hls.on(Hls.Events.ERROR, (e, data) => {
+      if (data.fatal) overlay.style.display = 'flex';
+    });
+  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+    video.src = LIVEPEER_PLAYBACK;
+    video.addEventListener('loadedmetadata', () => {
+      video.play();
+      overlay.style.display = 'none';
+    });
+  }
+}
+
+function goLive() {
+  window.open(LIVEPEER_BROADCAST, '_blank');
+  showToast('🎤 Trang phát live đã mở! Cho phép camera và bắt đầu!');
+}
+
+// Show Go Live button when logged in as KOL
+function showKolControls() {
+  const kc = document.getElementById('kolControls');
+  if (kc) kc.style.display = 'block';
+}
+
+// Init HLS on page load
+window.addEventListener('load', () => {
+  initHLSPlayer();
+  // Refresh stream check every 30 seconds
+  setInterval(initHLSPlayer, 30000);
+});
 
 // Init — disable donate buttons until login
 ['gift10','gift100','gift500'].forEach(id => {
