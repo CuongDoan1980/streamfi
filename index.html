@@ -530,21 +530,33 @@ body.lang-es [data-vi]{display:none;}body.lang-es [data-es]{display:revert;}
         <span data-es>✅ Completa tareas para ganar puntos</span>
       </h3>
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('twitter','Follow Twitter/X',100)">
-          𝕏 <span data-vi>Follow Twitter/X dự án</span><span data-en>Follow project Twitter/X</span><span data-ja>Twitter/Xをフォロー</span><span data-ko>Twitter/X 팔로우</span><span data-zh>关注Twitter/X</span><span data-es>Seguir Twitter/X</span>
+        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('twitter','Follow Twitter/X',100,'https://x.com/streamfiapp')">
+          𝕏 <span data-vi>Follow @streamfiapp trên Twitter/X</span><span data-en>Follow @streamfiapp on Twitter/X</span><span data-ja>@streamfiappをフォロー</span><span data-ko>@streamfiapp 팔로우</span><span data-zh>关注@streamfiapp</span><span data-es>Seguir @streamfiapp</span>
           <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+100pts</span>
         </button>
-        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('discord','Join Discord',150)">
-          ⚔ <span data-vi>Tham gia Discord</span><span data-en>Join Discord</span><span data-ja>Discordに参加</span><span data-ko>Discord 참여</span><span data-zh>加入Discord</span><span data-es>Unirse al Discord</span>
+        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('discord','Join Discord',150,'https://discord.gg/KZzbwqtv')">
+          ⚔ <span data-vi>Tham gia Discord StreamFi</span><span data-en>Join StreamFi Discord</span><span data-ja>StreamFi Discordに参加</span><span data-ko>StreamFi Discord 참여</span><span data-zh>加入StreamFi Discord</span><span data-es>Unirse al Discord</span>
           <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+150pts</span>
         </button>
-        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('retweet','Retweet post',100)">
-          🔁 <span data-vi>Like + Retweet bài viết</span><span data-en>Like + Retweet post</span><span data-ja>いいね＆リツイート</span><span data-ko>좋아요+리트윗</span><span data-zh>点赞+转发</span><span data-es>Like + Retweet</span>
+        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('telegram','Join Telegram',150,'https://t.me/StreamFi_App')">
+          ✈ <span data-vi>Tham gia Telegram StreamFi</span><span data-en>Join StreamFi Telegram</span><span data-ja>StreamFi Telegramに参加</span><span data-ko>StreamFi Telegram 참여</span><span data-zh>加入StreamFi Telegram</span><span data-es>Unirse al Telegram</span>
+          <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+150pts</span>
+        </button>
+        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('retweet','Retweet post',100,'https://x.com/streamfiapp')">
+          🔁 <span data-vi>Retweet bài viết của StreamFi</span><span data-en>Retweet StreamFi post</span><span data-ja>StreamFiの投稿をRT</span><span data-ko>StreamFi 게시물 리트윗</span><span data-zh>转发StreamFi帖子</span><span data-es>Retweetear publicación</span>
           <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+100pts</span>
         </button>
-        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('telegram','Join Telegram',150)">
-          ✈ <span data-vi>Tham gia Telegram</span><span data-en>Join Telegram</span><span data-ja>Telegramに参加</span><span data-ko>Telegram 참여</span><span data-zh>加入Telegram</span><span data-es>Unirse al Telegram</span>
-          <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+150pts</span>
+        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('invite','Invite a friend',200,'')">
+          👥 <span data-vi>Mời 1 bạn bè tham gia</span><span data-en>Invite 1 friend to join</span><span data-ja>友達1人を招待</span><span data-ko>친구 1명 초대</span><span data-zh>邀请1位朋友</span><span data-es>Invitar 1 amigo</span>
+          <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+200pts</span>
+        </button>
+        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('watch','Watch 5min livestream',50,'')">
+          📺 <span data-vi>Xem livestream 5 phút</span><span data-en>Watch livestream 5 minutes</span><span data-ja>5分ライブ視聴</span><span data-ko>라이브 5분 시청</span><span data-zh>观看直播5分钟</span><span data-es>Ver livestream 5 minutos</span>
+          <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+50pts</span>
+        </button>
+        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('donate','First donation',300,'')">
+          🎁 <span data-vi>Donate lần đầu tiên</span><span data-en>Make first donation</span><span data-ja>初めての寄付</span><span data-ko>첫 번째 기부</span><span data-zh>首次打赏</span><span data-es>Primera donación</span>
+          <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+300pts</span>
         </button>
       </div>
     </div>
@@ -609,9 +621,9 @@ body.lang-es [data-vi]{display:none;}body.lang-es [data-es]{display:revert;}
   <div class="logo">StreamFi</div>
   <p style="font-size:13px;color:var(--muted)"><span data-vi>MVP · Base Sepolia Testnet · Powered by Privy</span><span data-en>MVP · Base Sepolia Testnet · Powered by Privy</span><span data-ja>MVP · Base Sepolia テストネット · Privy提供</span><span data-ko>MVP · Base Sepolia 테스트넷 · Privy 제공</span><span data-zh>MVP · Base Sepolia测试网 · 由Privy提供支持</span><span data-es>MVP · Base Sepolia Testnet · Con tecnología de Privy</span></p>
   <div class="footer-links">
-    <a href="#" onclick="showToast('Twitter/X coming soon!')">Twitter/X</a>
-    <a href="#" onclick="showToast('Discord coming soon!')">Discord</a>
-    <a href="#" onclick="showToast('Telegram coming soon!')">Telegram</a>
+    <a href="https://x.com/streamfiapp" target="_blank" onclick="showToast('🐦 Opening Twitter/X...')">Twitter/X</a>
+    <a href="https://discord.gg/KZzbwqtv" target="_blank" onclick="showToast('💬 Opening Discord...')">Discord</a>
+    <a href="https://t.me/StreamFi_App" target="_blank" onclick="showToast('✈ Opening Telegram...')">Telegram</a>
   </div>
 </footer>
 
@@ -806,25 +818,21 @@ function sendGift(amount, emoji) {
 
 // Task completion
 const completedTasks = new Set();
-function doTask(taskId, taskName, points) {
-  if (!currentUser) { openLoginModal(); return; }
-  if (completedTasks.has(taskId)) {
-    showToast('⚠️ Bạn đã hoàn thành nhiệm vụ này rồi!');
-    return;
-  }
+function doTask(taskId, taskName, points, link) {
+  if (!currentUser) { openLoginModal(); showToast('🔑 Vui lòng đăng nhập trước!'); return; }
+  if (completedTasks.has(taskId)) { showToast('⚠️ Đã hoàn thành nhiệm vụ này rồi!'); return; }
   completedTasks.add(taskId);
   userWalletBalance += points * 10;
   document.getElementById('userBal').textContent = userWalletBalance.toLocaleString() + ' SCFI';
   document.getElementById('walletBalance').textContent = userWalletBalance.toLocaleString() + ' SCFI';
   addAirdropPoints(currentUser.address, points, taskName);
-  // Open relevant link
-  const links = {
-    'twitter': 'https://twitter.com',
-    'discord': 'https://discord.com',
-    'retweet': 'https://twitter.com',
-    'telegram': 'https://t.me'
-  };
-  if (links[taskId]) window.open(links[taskId], '_blank');
+  if (link) window.open(link, '_blank');
+  try {
+    const btn = event.target.closest('button');
+    btn.style.borderColor = 'var(--green)';
+    btn.style.background = 'rgba(16,185,129,0.1)';
+    btn.disabled = true;
+  } catch(e) {}
 }
 
 // ===== LIVESTREAM =====
