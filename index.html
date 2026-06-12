@@ -496,36 +496,86 @@ body.lang-es [data-vi]{display:none;}body.lang-es [data-es]{display:revert;}
 </section>
 
 <!-- STREAM PREVIEW -->
+<!-- HLS.js for viewing -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
 <div class="preview-section" id="preview">
   <div class="stream-mockup">
     <div class="mockup-bar">
       <div class="mock-dot" style="background:#FF5F57;"></div>
       <div class="mock-dot" style="background:#FFBD2E;"></div>
       <div class="mock-dot" style="background:#28CA41;"></div>
-      <div class="mock-url">streamfi.app/live/nguyenminh</div>
-      <div class="live-chip"><div style="width:5px;height:5px;background:#fff;border-radius:50%;"></div>LIVE</div>
+      <div class="mock-url" id="streamUrl">streamfi.app/live/nguyenminh</div>
+      <div class="live-chip" id="liveChip"><div style="width:5px;height:5px;background:#fff;border-radius:50%;"></div><span id="liveStatus">OFFLINE</span></div>
     </div>
     <div class="mockup-body">
-      <div class="video-zone">
-        <div class="wave-bars">
-          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-          <div class="wave-bar"></div><div class="wave-bar"></div>
+      <div class="video-zone" style="position:relative;overflow:hidden;">
+
+        <!-- VIEWER: HLS video player (shown when someone is live) -->
+        <video id="hlsVideo" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;" playsinline autoplay muted></video>
+
+        <!-- KOL: Camera preview (shown when KOL is going live) -->
+        <video id="camPreview" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0;transform:scaleX(-1);" playsinline autoplay muted></video>
+
+        <!-- OFFLINE: Default animated state -->
+        <div id="offlineState" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:100%;min-height:260px;width:100%;">
+          <div class="wave-bars">
+            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+            <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+            <div class="wave-bar"></div><div class="wave-bar"></div>
+          </div>
+          <div class="kol-avatar" id="kolAvatarEl">🎤</div>
+          <div class="kol-name-mock" id="kolNameEl">Nguyễn Minh</div>
+          <div class="viewers-mock"><span id="viewerCount">0</span> <span data-vi>đang xem</span><span data-en>watching</span><span data-ja>視聴中</span><span data-ko>시청 중</span><span data-zh>观看中</span><span data-es>viendo</span></div>
+          <div style="font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;">● OFFLINE</div>
         </div>
-        <div class="kol-avatar">🎤</div>
-        <div class="kol-name-mock">Nguyễn Minh</div>
-        <div class="viewers-mock"><span id="viewerCount">1,247</span> <span data-vi>đang xem</span><span data-en>watching</span><span data-ja>視聴中</span><span data-ko>시청 중</span><span data-zh>观看中</span><span data-es>viendo</span></div>
-        <div class="donate-float">🎆</div>
-        <div class="donate-float">❤️</div>
-        <div class="donate-float">👑</div>
+
+        <!-- KOL CONTROLS (bottom overlay, shown after login) -->
+        <div id="kolControls" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);z-index:10;">
+          <!-- Before going live -->
+          <div id="goLiveBtn">
+            <button onclick="startLive()" style="background:var(--red);color:#fff;border:none;padding:10px 24px;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 4px 20px rgba(239,68,68,0.4);">
+              <span style="width:8px;height:8px;background:#fff;border-radius:50%;"></span>
+              <span data-vi>🎤 Bắt đầu Live</span><span data-en>🎤 Go Live</span><span data-ja>🎤 配信開始</span><span data-ko>🎤 라이브 시작</span><span data-zh>🎤 开始直播</span><span data-es>🎤 Iniciar Live</span>
+            </button>
+          </div>
+          <!-- While live -->
+          <div id="stopLiveBtn" style="display:none;display:flex;gap:8px;">
+            <button onclick="stopLive()" style="background:var(--red);color:#fff;border:none;padding:10px 20px;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:13px;cursor:pointer;">
+              ⏹ <span data-vi>Dừng Live</span><span data-en>Stop Live</span><span data-ja>配信停止</span><span data-ko>라이브 중지</span><span data-zh>停止直播</span><span data-es>Detener Live</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- CAMERA PERMISSION overlay -->
+        <div id="camPermission" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;flex-direction:column;gap:14px;z-index:20;">
+          <div style="font-size:36px;">📷</div>
+          <div style="font-size:14px;font-weight:600;" data-vi>Cho phép truy cập camera</div>
+          <div style="font-size:14px;font-weight:600;" data-en>Allow camera access</div>
+          <div style="font-size:14px;font-weight:600;" data-ja>カメラアクセスを許可</div>
+          <div style="font-size:14px;font-weight:600;" data-ko>카메라 접근 허용</div>
+          <div style="font-size:14px;font-weight:600;" data-zh>允许访问摄像头</div>
+          <div style="font-size:14px;font-weight:600;" data-es>Permitir acceso a cámara</div>
+          <div style="font-size:12px;color:var(--muted);text-align:center;max-width:200px;" data-vi>Bấm "Allow" khi trình duyệt hỏi để bắt đầu phát</div>
+          <div style="font-size:12px;color:var(--muted);text-align:center;max-width:200px;" data-en>Click "Allow" when browser asks to start streaming</div>
+        </div>
+
+        <!-- Donate effects overlay -->
+        <div id="donateEffects" style="position:absolute;top:10px;right:10px;display:flex;flex-direction:column;gap:4px;pointer-events:none;z-index:5;"></div>
       </div>
+
       <div class="chat-side">
-        <div class="chat-hdr"><div class="online-dot"></div>Live Chat</div>
+        <div class="chat-hdr"><div class="online-dot"></div>Live Chat <span id="chatCount" style="margin-left:auto;color:var(--green);font-size:10px;">0 online</span></div>
         <div class="chat-msgs" id="chatMsgs">
           <div class="cmsg cdonate"><div class="cu">@tranlan99</div><div>→ <span class="camt">15 SCFI</span> 🎇</div></div>
           <div class="cmsg"><span class="cu">@hoanganh:</span> great stream! 🔥</div>
           <div class="cmsg cdonate"><div class="cu">@cryptofan</div><div>→ <span class="camt">10 SCFI</span> 🎆</div></div>
           <div class="cmsg"><span class="cu">@web3girl:</span> so easy!</div>
+        </div>
+        <!-- Chat input -->
+        <div style="padding:8px 12px;border-top:1px solid var(--border);display:flex;gap:6px;">
+          <input id="chatInput" placeholder="Nhắn tin..." style="flex:1;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:12px;font-family:'Space Grotesk',sans-serif;outline:none;" onkeydown="if(event.key==='Enter')sendChat()">
+          <button onclick="sendChat()" style="background:var(--accent);border:none;color:#fff;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;">→</button>
         </div>
         <div class="gift-row">
           <button class="gbtn" id="g10" onclick="sendGift(10,'❤️')" disabled>❤️ 10</button>
@@ -858,6 +908,7 @@ function onLogin(u){
 
   showToast('✅ Chào '+u.name+'! Ví đã sẵn sàng.');
   saveUser(u);
+  showKolControls();
 }
 
 function logoutUser(){
@@ -966,7 +1017,151 @@ async function addPoints(addr,p,task){
   }catch(e){console.log('Points:',e);}
 }
 
-// ===== GIFT/DONATE =====
+// ===== LIVESTREAM =====
+const LIVEPEER_PLAYBACK='https://livepeercdn.studio/hls/b5b5nslpak0wwaec/index.m3u8';
+let mediaStream=null, isLive=false, viewerInterval=null, chatInterval=null;
+
+// Init HLS viewer
+function initViewer(){
+  const v=document.getElementById('hlsVideo');
+  if(!v)return;
+  if(Hls.isSupported()){
+    const hls=new Hls({lowLatencyMode:true});
+    hls.loadSource(LIVEPEER_PLAYBACK);
+    hls.attachMedia(v);
+    hls.on(Hls.Events.MANIFEST_PARSED,()=>{
+      v.play();
+      v.style.display='block';
+      document.getElementById('offlineState').style.display='none';
+      document.getElementById('liveStatus').textContent='LIVE';
+      document.getElementById('viewerCount').textContent=Math.floor(Math.random()*50+10);
+      startViewerCounter();
+    });
+    hls.on(Hls.Events.ERROR,(e,d)=>{if(d.fatal){showOfflineState();}});
+  }
+}
+
+function showOfflineState(){
+  document.getElementById('hlsVideo').style.display='none';
+  document.getElementById('offlineState').style.display='flex';
+  document.getElementById('liveStatus').textContent='OFFLINE';
+}
+
+// KOL Start Live — uses browser camera
+async function startLive(){
+  if(!user){openLogin();return;}
+  const perm=document.getElementById('camPermission');
+  perm.style.display='flex';
+  try{
+    mediaStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:true});
+    perm.style.display='none';
+    const cam=document.getElementById('camPreview');
+    cam.srcObject=mediaStream;
+    cam.style.display='block';
+    document.getElementById('offlineState').style.display='none';
+    document.getElementById('hlsVideo').style.display='none';
+    document.getElementById('goLiveBtn').style.display='none';
+    document.getElementById('stopLiveBtn').style.display='flex';
+    document.getElementById('liveStatus').textContent='LIVE';
+    document.getElementById('liveChip').style.background='var(--red)';
+    document.getElementById('streamUrl').textContent='streamfi.app/live/'+user.name.replace('@','').toLowerCase();
+    isLive=true;
+    startViewerCounter();
+    addChatMessage('🎙️ System','Buổi live của bạn đã bắt đầu!','system');
+    showToast('🔴 Bạn đang phát LIVE! Camera đã bật.');
+  }catch(e){
+    perm.style.display='none';
+    if(e.name==='NotAllowedError'){
+      showToast('❌ Cần cho phép truy cập camera để live!');
+    } else {
+      showToast('❌ Lỗi camera: '+e.message);
+    }
+  }
+}
+
+function stopLive(){
+  if(mediaStream){mediaStream.getTracks().forEach(t=>t.stop());mediaStream=null;}
+  document.getElementById('camPreview').style.display='none';
+  document.getElementById('camPreview').srcObject=null;
+  document.getElementById('goLiveBtn').style.display='block';
+  document.getElementById('stopLiveBtn').style.display='none';
+  document.getElementById('offlineState').style.display='flex';
+  document.getElementById('liveStatus').textContent='OFFLINE';
+  document.getElementById('liveChip').style.background='';
+  isLive=false;
+  if(viewerInterval){clearInterval(viewerInterval);viewerInterval=null;}
+  addChatMessage('🎙️ System','Buổi live đã kết thúc. Cảm ơn mọi người!','system');
+  showToast('⏹ Đã dừng live.');
+}
+
+function startViewerCounter(){
+  let v=Math.floor(Math.random()*20+5);
+  document.getElementById('viewerCount').textContent=v;
+  if(viewerInterval)clearInterval(viewerInterval);
+  viewerInterval=setInterval(()=>{
+    if(isLive||document.getElementById('hlsVideo').style.display!=='none'){
+      v+=Math.floor(Math.random()*5)-2;
+      v=Math.max(1,v);
+      document.getElementById('viewerCount').textContent=v;
+      document.getElementById('chatCount').textContent=v+' online';
+    }
+  },5000);
+}
+
+// Chat
+function sendChat(){
+  if(!user){showToast('🔑 Đăng nhập để chat!');return;}
+  const inp=document.getElementById('chatInput');
+  const msg=inp.value.trim();
+  if(!msg)return;
+  addChatMessage(user.name,msg,'user');
+  inp.value='';
+}
+
+function addChatMessage(name,msg,type){
+  const chat=document.getElementById('chatMsgs');
+  const d=document.createElement('div');
+  if(type==='donate'){
+    d.className='cmsg cdonate';
+    d.innerHTML='<div class="cu">'+name+'</div><div>'+msg+'</div>';
+  } else if(type==='system'){
+    d.className='cmsg';
+    d.innerHTML='<span style="color:var(--accent2);font-size:11px;">'+name+'</span> <span style="font-size:12px;color:var(--muted);">'+msg+'</span>';
+  } else {
+    d.className='cmsg';
+    d.innerHTML='<span class="cu">'+name+':</span> <span style="font-size:12px;">'+msg+'</span>';
+  }
+  chat.appendChild(d);
+  chat.scrollTop=chat.scrollHeight;
+  if(chat.children.length>20)chat.removeChild(chat.children[0]);
+}
+
+// Donate effects
+function showDonateEffect(emoji,amount,name){
+  const el=document.getElementById('donateEffects');
+  const d=document.createElement('div');
+  d.style.cssText='font-size:13px;background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:4px 10px;color:var(--green);font-family:Space Mono,monospace;animation:floatUp 3s ease forwards;';
+  d.textContent=emoji+' '+name+' +'+amount+' SCFI';
+  el.appendChild(d);
+  setTimeout(()=>d.remove(),3000);
+}
+
+// Init on load
+window.addEventListener('load',()=>{
+  initViewer();
+});
+
+// Show KOL controls after login
+function showKolControls(){
+  const kc=document.getElementById('kolControls');
+  if(kc){kc.style.display='block';}
+  if(user){
+    document.getElementById('kolAvatarEl').textContent=user.avatar||'🎤';
+    document.getElementById('kolNameEl').textContent=user.name;
+  }
+}
+
+// ===== CHAT SEND =====
 const chatNames=['@web3fan','@cryptolover','@streamfi_vn','@hodler','@nftcollector'];
 function sendGift(amt,emoji){
   if(!user){openLogin();return;}
@@ -975,20 +1170,21 @@ function sendGift(amt,emoji){
   document.getElementById('uBal').textContent=bal+' SCFI';
   document.getElementById('wBal').textContent=bal+' SCFI';
   localStorage.setItem('sf_bal_'+user.address,bal);
-  const chat=document.getElementById('chatMsgs');
-  const d=document.createElement('div');d.className='cmsg cdonate';
-  d.innerHTML='<div class="cu">'+user.name+'</div><div>→ <span class="camt">'+amt+' SCFI</span> '+emoji+'</div>';
-  chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
-  if(chat.children.length>8)chat.removeChild(chat.children[0]);
+  addChatMessage(user.name,'→ <span class="camt">'+amt+' SCFI</span> '+emoji,'donate');
+  showDonateEffect(emoji,amt,user.name);
   const vc=document.getElementById('viewerCount');
   vc.textContent=(parseInt(vc.textContent.replace(',',''))+Math.floor(Math.random()*3+1)).toLocaleString();
   showToast(emoji+' Donated '+amt+' SCFI!');
-
-  // Auto-complete donate task
   if(!done.has('donate')){
     done.add('donate');
+    bal+=15;pts+=15;
     localStorage.setItem('sf_done_'+user.address,JSON.stringify([...done]));
-    showToast('🎉 +15 SCFI bonus cho lần donate đầu tiên!');
+    localStorage.setItem('sf_bal_'+user.address,bal);
+    document.getElementById('uBal').textContent=bal+' SCFI';
+    document.getElementById('wBal').textContent=bal+' SCFI';
+    setTimeout(()=>showToast('🎉 +15 SCFI bonus lần donate đầu tiên!'),1000);
+  }
+}
   }
 }
 
