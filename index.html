@@ -4,189 +4,272 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>StreamFi — Live. Earn. Own.</title>
-<!-- Privy SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@privy-io/js-sdk-core@latest/dist/index.umd.js"></script>
-<!-- HLS.js for livestream -->
-<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
-:root{--bg:#080B10;--bg2:#0E1420;--card:#111827;--border:#1E2A3A;--accent:#7C3AED;--accent2:#06B6D4;--green:#10B981;--text:#F1F5F9;--muted:#64748B;}
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+
+:root {
+  --bg:#06090F;--bg2:#0C1018;--card:#111827;--border:#1a2332;
+  --accent:#7C3AED;--accent2:#06B6D4;--green:#10B981;--red:#EF4444;
+  --text:#F1F5F9;--muted:#64748B;--gold:#F59E0B;
+}
 *{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
 body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;overflow-x:hidden;}
 
-/* LANG BAR */
-.lang-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 40px;display:flex;justify-content:flex-end;align-items:center;gap:6px;flex-wrap:wrap;}
-.lang-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all 0.2s;}
+/* ===== ANIMATED BACKGROUND ===== */
+.bg-grid {
+  position:fixed;inset:0;z-index:0;
+  background-image:linear-gradient(rgba(124,58,237,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(124,58,237,0.03) 1px,transparent 1px);
+  background-size:60px 60px;
+  pointer-events:none;
+}
+.bg-glow1{position:fixed;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,0.08) 0%,transparent 70%);top:-200px;left:-100px;pointer-events:none;animation:float1 8s ease-in-out infinite;}
+.bg-glow2{position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,0.06) 0%,transparent 70%);bottom:-100px;right:-100px;pointer-events:none;animation:float2 10s ease-in-out infinite;}
+@keyframes float1{0%,100%{transform:translate(0,0);}50%{transform:translate(30px,-30px);}}
+@keyframes float2{0%,100%{transform:translate(0,0);}50%{transform:translate(-20px,20px);}}
+
+/* ===== LANG BAR ===== */
+.lang-bar{position:relative;z-index:10;background:rgba(12,16,24,0.9);border-bottom:1px solid var(--border);padding:7px 40px;display:flex;justify-content:flex-end;gap:6px;flex-wrap:wrap;}
+.lang-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 10px;border-radius:6px;font-size:11px;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all 0.2s;}
 .lang-btn:hover{border-color:var(--accent);color:var(--text);}
 .lang-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
-/* NAV */
-nav{display:flex;justify-content:space-between;align-items:center;padding:16px 40px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(8,11,16,0.95);backdrop-filter:blur(12px);z-index:100;}
-.logo{font-family:'Space Mono',monospace;font-size:22px;font-weight:700;background:linear-gradient(90deg,#7C3AED,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+/* ===== NAV ===== */
+nav{position:sticky;top:0;z-index:100;background:rgba(6,9,15,0.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:14px 40px;display:flex;justify-content:space-between;align-items:center;}
+.logo{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;background:linear-gradient(90deg,#7C3AED,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:flex;align-items:center;gap:8px;}
+.logo-dot{width:8px;height:8px;background:#EF4444;border-radius:50%;animation:pulse-dot 1.5s ease-in-out infinite;}
+@keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(1.3);}}
 .nav-links{display:flex;gap:28px;list-style:none;}
-.nav-links a{color:var(--muted);text-decoration:none;font-size:14px;font-weight:500;transition:color 0.2s;}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color 0.2s;}
 .nav-links a:hover{color:var(--text);}
-.nav-right{display:flex;align-items:center;gap:12px;}
+.nav-right{display:flex;align-items:center;gap:10px;}
+.btn-login{background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border:none;padding:9px 20px;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 0 20px rgba(124,58,237,0.3);}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 0 30px rgba(124,58,237,0.5);}
+.user-info{display:none;align-items:center;gap:8px;}
+.user-avatar{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#06B6D4);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+.user-bal{background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:var(--green);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;font-family:'Space Mono',monospace;}
+.btn-logout{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:6px;font-size:12px;cursor:pointer;transition:all 0.2s;font-family:'Space Grotesk',sans-serif;}
+.btn-logout:hover{border-color:var(--red);color:var(--red);}
 
-/* USER PROFILE in nav */
-.user-info{display:none;align-items:center;gap:10px;}
-.user-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#06B6D4);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;}
-.user-address{font-family:'Space Mono',monospace;font-size:12px;color:var(--muted);}
-.user-balance{background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.3);color:var(--green);padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;font-family:'Space Mono',monospace;}
+/* ===== HERO ===== */
+.hero{position:relative;z-index:1;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 40px 60px;overflow:hidden;}
 
-.btn-login{background:var(--accent);color:#fff;border:none;padding:10px 20px;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;}
-.btn-login:hover{background:#6D28D9;transform:translateY(-1px);}
-.btn-logout{background:transparent;color:var(--muted);border:1px solid var(--border);padding:8px 14px;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:13px;cursor:pointer;transition:all 0.2s;}
-.btn-logout:hover{border-color:#EF4444;color:#EF4444;}
+/* Floating stream cards */
+.float-card{position:absolute;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:8px;font-size:12px;pointer-events:none;animation:floatCard 6s ease-in-out infinite;}
+.float-card-1{top:15%;left:5%;animation-delay:0s;}
+.float-card-2{top:25%;right:4%;animation-delay:1.5s;}
+.float-card-3{bottom:25%;left:4%;animation-delay:3s;}
+.float-card-4{bottom:15%;right:5%;animation-delay:4.5s;}
+@keyframes floatCard{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+.float-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.live-pip{width:6px;height:6px;background:var(--red);border-radius:50%;animation:pulse-dot 1s infinite;}
+.donate-pill{background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.25);border-radius:20px;padding:4px 10px;font-size:11px;color:var(--green);font-family:'Space Mono',monospace;}
 
-/* HERO */
-.hero{min-height:88vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 40px 60px;position:relative;overflow:hidden;}
-.hero::before{content:'';position:absolute;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,0.13) 0%,transparent 70%);top:-200px;left:50%;transform:translateX(-50%);pointer-events:none;}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(124,58,237,0.15);border:1px solid rgba(124,58,237,0.3);color:#A78BFA;padding:6px 16px;border-radius:100px;font-size:13px;font-weight:500;margin-bottom:28px;font-family:'Space Mono',monospace;}
-.hero h1{font-size:clamp(38px,7vw,86px);font-weight:700;line-height:1.0;letter-spacing:-2px;max-width:880px;margin-bottom:24px;}
-.hero h1 em{font-style:normal;background:linear-gradient(135deg,#7C3AED,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.hero p{font-size:17px;color:var(--muted);max-width:520px;line-height:1.7;margin-bottom:40px;}
-.hero-btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;}
-.btn-primary{background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border:none;padding:14px 32px;border-radius:10px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s;box-shadow:0 0 30px rgba(124,58,237,0.3);}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 40px rgba(124,58,237,0.5);}
-.btn-secondary{background:transparent;color:var(--text);border:1px solid var(--border);padding:14px 32px;border-radius:10px;font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s;}
-.btn-secondary:hover{border-color:var(--accent);}
+/* Ticker bar */
+.ticker-wrap{width:100%;overflow:hidden;background:rgba(124,58,237,0.08);border:1px solid rgba(124,58,237,0.2);border-radius:8px;padding:8px 0;margin-bottom:32px;}
+.ticker-inner{display:flex;gap:48px;animation:ticker 20s linear infinite;white-space:nowrap;}
+@keyframes ticker{0%{transform:translateX(0);}100%{transform:translateX(-50%);}}
+.ticker-item{font-family:'Space Mono',monospace;font-size:11px;color:var(--muted);display:flex;align-items:center;gap:8px;}
+.ticker-item span{color:var(--green);}
 
-/* LOGIN MODAL (custom) */
-.login-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
-.login-modal-overlay.open{display:flex;}
-.login-modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:40px 36px;max-width:420px;width:90%;position:relative;animation:modalIn 0.25s ease-out;}
-@keyframes modalIn{from{opacity:0;transform:scale(0.92);}to{opacity:1;transform:scale(1);}}
-.modal-close{position:absolute;top:16px;right:16px;background:transparent;border:none;color:var(--muted);font-size:22px;cursor:pointer;}
-.modal-close:hover{color:var(--text);}
-.modal-title{font-size:22px;font-weight:700;margin-bottom:6px;}
-.modal-sub{color:var(--muted);font-size:14px;margin-bottom:28px;line-height:1.5;}
-.login-methods{display:flex;flex-direction:column;gap:12px;}
-.login-btn{width:100%;padding:14px 20px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:14px;text-align:left;}
-.login-btn:hover{border-color:var(--accent);background:rgba(124,58,237,0.08);transform:translateX(3px);}
-.login-btn .btn-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
-.login-btn .btn-label{flex:1;}
-.login-btn .btn-label small{display:block;font-size:11px;color:var(--muted);font-weight:400;margin-top:2px;}
-.divider{display:flex;align-items:center;gap:12px;margin:8px 0;}
-.divider span{font-size:12px;color:var(--muted);}
-.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.3);color:#A78BFA;padding:6px 16px;border-radius:100px;font-size:12px;font-weight:500;margin-bottom:24px;font-family:'Space Mono',monospace;}
+.badge-dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse-dot 1.5s infinite;}
 
-/* WALLET SECTION (after login) */
-.wallet-section{display:none;background:var(--bg2);border-bottom:1px solid var(--border);padding:20px 40px;}
-.wallet-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
-.wallet-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px 24px;display:flex;align-items:center;gap:16px;}
-.wallet-icon{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#06B6D4);display:flex;align-items:center;justify-content:center;font-size:20px;}
-.wallet-details h4{font-size:13px;color:var(--muted);margin-bottom:4px;}
-.wallet-details p{font-family:'Space Mono',monospace;font-size:13px;font-weight:600;}
-.wallet-details .balance{color:var(--green);}
-.wallet-actions{display:flex;gap:10px;}
-.wallet-action-btn{padding:9px 18px;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;border:1px solid var(--border);background:transparent;color:var(--text);}
-.wallet-action-btn:hover{border-color:var(--accent);color:#A78BFA;}
-.wallet-action-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
-.wallet-action-btn.primary:hover{background:#6D28D9;}
+.hero h1{font-size:clamp(36px,6vw,80px);font-weight:800;line-height:1.0;letter-spacing:-2px;max-width:820px;margin-bottom:20px;}
+.hero h1 .grad{background:linear-gradient(135deg,#7C3AED,#06B6D4,#10B981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% auto;animation:gradShift 4s ease infinite;}
+@keyframes gradShift{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+.hero p{font-size:16px;color:var(--muted);max-width:500px;line-height:1.8;margin-bottom:36px;}
 
-/* MOCKUP */
-.demo-section{padding:20px 40px 70px;display:flex;justify-content:center;}
-.live-mockup{background:var(--card);border:1px solid var(--border);border-radius:20px;width:100%;max-width:860px;overflow:hidden;box-shadow:0 40px 80px rgba(0,0,0,0.5);}
-.mockup-top{background:var(--bg2);padding:13px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
-.dot{width:12px;height:12px;border-radius:50%;}
-.dot-r{background:#FF5F57;}.dot-y{background:#FFBD2E;}.dot-g{background:#28CA41;}
-.live-badge{margin-left:auto;background:#EF4444;color:#fff;font-size:11px;font-weight:700;font-family:'Space Mono',monospace;padding:4px 10px;border-radius:4px;display:flex;align-items:center;gap:5px;animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.6;}}
-.live-dot{width:6px;height:6px;background:#fff;border-radius:50%;}
-.mockup-body{display:grid;grid-template-columns:1fr 300px;min-height:320px;}
-.video-area{background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);display:flex;align-items:center;justify-content:center;padding:20px;}
-.avatar-ring{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#06B6D4);display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px;box-shadow:0 0 30px rgba(124,58,237,0.5);}
-.kol-name{font-size:15px;font-weight:600;margin-bottom:4px;text-align:center;}
-.viewer-count{font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;text-align:center;}
-.viewers-num{color:var(--green);font-weight:700;}
-.chat-area{border-left:1px solid var(--border);display:flex;flex-direction:column;}
-.chat-header{padding:12px 16px;font-size:12px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);font-family:'Space Mono',monospace;text-transform:uppercase;}
-.chat-messages{flex:1;padding:12px 16px;display:flex;flex-direction:column;gap:10px;overflow:hidden;}
-.chat-msg{font-size:13px;line-height:1.5;}
-.chat-user{font-weight:600;color:#A78BFA;font-size:12px;}
-.donate-msg{background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2);border-radius:8px;padding:8px 10px;}
-.donate-amount{color:var(--green);font-weight:700;font-family:'Space Mono',monospace;}
-.donate-btns{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;}
-.gift-btn{flex:1;padding:8px;border-radius:8px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'Space Grotesk',sans-serif;}
-.gift-btn:hover{border-color:var(--accent);background:rgba(124,58,237,0.15);transform:scale(1.05);}
-.gift-btn.hot{background:rgba(124,58,237,0.2);border-color:var(--accent);}
-.gift-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:48px;}
+.btn-primary{background:linear-gradient(135deg,#7C3AED,#5B21B6);color:#fff;border:none;padding:14px 32px;border-radius:10px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 0 30px rgba(124,58,237,0.35);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 50px rgba(124,58,237,0.55);}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border);padding:14px 32px;border-radius:10px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.btn-outline:hover{border-color:var(--accent);color:#A78BFA;}
 
-/* STATS */
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
-.stat-item{background:var(--bg);padding:36px 40px;text-align:center;}
-.stat-num{font-family:'Space Mono',monospace;font-size:42px;font-weight:700;background:linear-gradient(135deg,#7C3AED,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:block;margin-bottom:8px;}
-.stat-label{font-size:14px;color:var(--muted);}
+/* Stats row */
+.stats-row{display:flex;gap:32px;flex-wrap:wrap;justify-content:center;}
+.stat-pill{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 24px;text-align:center;}
+.stat-pill .num{font-family:'Space Mono',monospace;font-size:24px;font-weight:700;background:linear-gradient(135deg,#7C3AED,#06B6D4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.stat-pill .lbl{font-size:11px;color:var(--muted);margin-top:2px;}
 
-/* AIRDROP */
-.airdrop-section{padding:80px 40px;background:var(--bg2);border-bottom:1px solid var(--border);}
-.airdrop-header{text-align:center;margin-bottom:48px;}
-.airdrop-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);color:var(--green);padding:6px 16px;border-radius:100px;font-size:13px;font-weight:600;margin-bottom:20px;font-family:'Space Mono',monospace;}
-.airdrop-header h2{font-size:clamp(26px,4vw,44px);font-weight:700;letter-spacing:-1.5px;margin-bottom:12px;}
-.airdrop-header p{color:var(--muted);font-size:16px;max-width:500px;margin:0 auto;line-height:1.7;}
-.airdrop-pool{background:var(--card);border:1px solid rgba(16,185,129,0.25);border-radius:20px;padding:32px;text-align:center;margin-bottom:40px;max-width:480px;margin-left:auto;margin-right:auto;}
-.pool-num{font-family:'Space Mono',monospace;font-size:44px;font-weight:700;color:var(--green);display:block;margin-bottom:6px;}
-.pool-label{font-size:14px;color:var(--muted);margin-bottom:18px;}
-.pool-bar-label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:8px;font-family:'Space Mono',monospace;}
-.pool-bar{height:8px;background:var(--border);border-radius:100px;overflow:hidden;}
-.pool-fill{height:100%;width:8%;background:linear-gradient(90deg,var(--green),var(--accent2));border-radius:100px;animation:fillbar 2s ease-out;}
+/* ===== STREAM PREVIEW ===== */
+.preview-section{position:relative;z-index:1;padding:80px 40px;display:flex;justify-content:center;}
+.stream-mockup{background:var(--card);border:1px solid var(--border);border-radius:20px;width:100%;max-width:880px;overflow:hidden;box-shadow:0 40px 100px rgba(0,0,0,0.6);}
+.mockup-bar{background:var(--bg2);padding:12px 18px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+.mock-dot{width:11px;height:11px;border-radius:50%;}
+.mock-url{flex:1;background:rgba(255,255,255,0.05);border-radius:6px;padding:4px 12px;font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;margin:0 12px;}
+.live-chip{background:var(--red);color:#fff;font-size:10px;font-weight:700;font-family:'Space Mono',monospace;padding:3px 8px;border-radius:4px;display:flex;align-items:center;gap:4px;animation:pulse-chip 2s infinite;}
+@keyframes pulse-chip{0%,100%{opacity:1;}50%{opacity:0.7;}}
+.mockup-body{display:grid;grid-template-columns:1fr 280px;min-height:300px;}
+.video-zone{background:linear-gradient(160deg,#0a0520,#1a0a3a,#0a1a2a);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;position:relative;overflow:hidden;}
+/* animated wave bars */
+.wave-bars{display:flex;align-items:center;gap:3px;height:40px;}
+.wave-bar{width:4px;background:linear-gradient(180deg,#7C3AED,#06B6D4);border-radius:2px;animation:wave 1.2s ease-in-out infinite;}
+.wave-bar:nth-child(1){animation-delay:0s;height:20px;}
+.wave-bar:nth-child(2){animation-delay:0.1s;height:32px;}
+.wave-bar:nth-child(3){animation-delay:0.2s;height:24px;}
+.wave-bar:nth-child(4){animation-delay:0.3s;height:38px;}
+.wave-bar:nth-child(5){animation-delay:0.4s;height:28px;}
+.wave-bar:nth-child(6){animation-delay:0.5s;height:20px;}
+.wave-bar:nth-child(7){animation-delay:0.3s;height:34px;}
+.wave-bar:nth-child(8){animation-delay:0.1s;height:22px;}
+@keyframes wave{0%,100%{transform:scaleY(0.5);}50%{transform:scaleY(1);}}
+.kol-avatar{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#7C3AED,#06B6D4);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 0 30px rgba(124,58,237,0.6);}
+.kol-name-mock{font-size:13px;font-weight:600;}
+.viewers-mock{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;}
+.viewers-mock span{color:var(--green);font-weight:700;}
+/* floating donate effects */
+.donate-float{position:absolute;right:16px;top:50%;font-size:18px;animation:floatUp 3s ease-in-out infinite;}
+.donate-float:nth-child(2){animation-delay:1s;right:40px;}
+.donate-float:nth-child(3){animation-delay:2s;right:24px;}
+@keyframes floatUp{0%{opacity:0;transform:translateY(0);}30%{opacity:1;}100%{opacity:0;transform:translateY(-80px);}}
+/* chat side */
+.chat-side{border-left:1px solid var(--border);display:flex;flex-direction:column;}
+.chat-hdr{padding:10px 14px;font-size:11px;font-weight:600;color:var(--muted);border-bottom:1px solid var(--border);font-family:'Space Mono',monospace;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.online-dot{width:6px;height:6px;background:var(--green);border-radius:50%;}
+.chat-msgs{flex:1;padding:10px 14px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+.cmsg{font-size:12px;line-height:1.5;}
+.cu{font-weight:600;color:#A78BFA;font-size:11px;}
+.cdonate{background:rgba(124,58,237,0.1);border:1px solid rgba(124,58,237,0.2);border-radius:7px;padding:7px 9px;}
+.camt{color:var(--green);font-weight:700;font-family:'Space Mono',monospace;}
+.gift-row{padding:10px 14px;border-top:1px solid var(--border);display:flex;gap:6px;}
+.gbtn{flex:1;padding:7px;border-radius:7px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:11px;font-weight:600;cursor:pointer;transition:all 0.2s;font-family:'Space Grotesk',sans-serif;}
+.gbtn:hover{border-color:var(--accent);background:rgba(124,58,237,0.15);transform:scale(1.05);}
+.gbtn.hot{background:rgba(124,58,237,0.2);border-color:var(--accent);}
+
+/* ===== SECTION COMMON ===== */
+.section{position:relative;z-index:1;padding:80px 40px;}
+.sec-label{font-family:'Space Mono',monospace;font-size:10px;color:var(--accent2);text-transform:uppercase;letter-spacing:0.15em;margin-bottom:12px;}
+.sec-title{font-size:clamp(24px,3.5vw,40px);font-weight:800;letter-spacing:-1px;margin-bottom:12px;line-height:1.1;}
+.sec-sub{color:var(--muted);font-size:15px;max-width:480px;line-height:1.8;margin-bottom:48px;}
+
+/* ===== EARLY ACCESS (landing for non-logged users) ===== */
+.early-section{position:relative;z-index:1;background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:80px 40px;}
+.early-inner{max-width:680px;margin:0 auto;text-align:center;}
+.early-inner h2{font-size:clamp(26px,4vw,44px);font-weight:800;letter-spacing:-1.5px;margin-bottom:14px;}
+.early-inner p{color:var(--muted);font-size:15px;line-height:1.8;margin-bottom:36px;max-width:480px;margin-left:auto;margin-right:auto;}
+
+/* Social task buttons for landing */
+.social-tasks{display:flex;flex-direction:column;gap:10px;max-width:480px;margin:0 auto 32px;}
+.stask{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 18px;cursor:pointer;transition:all 0.2s;text-align:left;}
+.stask:hover{border-color:var(--accent);background:rgba(124,58,237,0.08);transform:translateX(4px);}
+.stask.done{border-color:var(--green);background:rgba(16,185,129,0.06);pointer-events:none;}
+.stask-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.stask-info{flex:1;}
+.stask-name{font-size:14px;font-weight:600;margin-bottom:2px;}
+.stask-desc{font-size:11px;color:var(--muted);}
+.stask-reward{font-family:'Space Mono',monospace;font-size:13px;font-weight:700;color:var(--green);white-space:nowrap;}
+.stask-status{font-size:11px;font-weight:700;color:var(--green);}
+
+/* Progress bar */
+.progress-wrap{max-width:480px;margin:0 auto;}
+.progress-bar{height:6px;background:var(--border);border-radius:100px;overflow:hidden;margin:16px 0 8px;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#7C3AED,#06B6D4);border-radius:100px;transition:width 0.5s ease;}
+.progress-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;}
+
+/* ===== WALLET SECTION ===== */
+.wallet-bar{position:relative;z-index:1;background:rgba(16,185,129,0.05);border-bottom:1px solid rgba(16,185,129,0.15);padding:14px 40px;display:none;}
+.wallet-inner{max-width:900px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.wcard{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:10px 18px;display:flex;align-items:center;gap:10px;}
+.wcard-icon{font-size:20px;}
+.wcard h5{font-size:11px;color:var(--muted);margin-bottom:3px;}
+.wcard p{font-family:'Space Mono',monospace;font-size:12px;font-weight:600;}
+.wcard .green{color:var(--green);}
+.wactions{display:flex;gap:8px;}
+.wbtn{padding:8px 16px;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.2s;border:1px solid var(--border);background:transparent;color:var(--text);}
+.wbtn:hover{border-color:var(--accent);color:#A78BFA;}
+.wbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+.wbtn.primary:hover{background:#6D28D9;}
+
+/* ===== AIRDROP POOL ===== */
+.pool-card{background:var(--card);border:1px solid rgba(16,185,129,0.25);border-radius:20px;padding:32px;text-align:center;max-width:480px;margin:0 auto 48px;}
+.pool-num{font-family:'Space Mono',monospace;font-size:42px;font-weight:700;color:var(--green);display:block;margin-bottom:4px;letter-spacing:-1px;}
+.pool-sub{font-size:13px;color:var(--muted);margin-bottom:18px;}
+.pbar-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px;font-family:'Space Mono',monospace;}
+.pbar{height:8px;background:var(--border);border-radius:100px;overflow:hidden;}
+.pbar-fill{height:100%;width:8%;background:linear-gradient(90deg,var(--green),var(--accent2));border-radius:100px;animation:fillbar 2s ease-out;}
 @keyframes fillbar{from{width:0;}to{width:8%;}}
-.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:40px;}
-.tier-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:26px 20px;text-align:center;transition:all 0.25s;position:relative;}
-.tier-card:hover{transform:translateY(-4px);border-color:var(--accent);}
-.tier-card.featured{border-color:var(--accent);background:rgba(124,58,237,0.08);}
-.tier-card.featured::before{content:'HOT 🔥';position:absolute;top:12px;right:12px;background:var(--accent);color:#fff;font-size:10px;font-weight:700;font-family:'Space Mono',monospace;padding:3px 8px;border-radius:4px;}
-.tier-icon{font-size:32px;margin-bottom:10px;}
-.tier-name{font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;text-transform:uppercase;margin-bottom:8px;}
-.tier-reward{font-family:'Space Mono',monospace;font-size:26px;font-weight:700;color:var(--green);margin-bottom:4px;}
-.tier-token{font-size:12px;color:var(--muted);margin-bottom:16px;}
-.tier-tasks{list-style:none;text-align:left;display:flex;flex-direction:column;gap:7px;}
-.tier-tasks li{font-size:12px;color:var(--muted);display:flex;gap:6px;line-height:1.5;}
-.tier-tasks li::before{content:'→';color:var(--accent2);flex-shrink:0;font-family:'Space Mono',monospace;font-size:11px;}
-.airdrop-cta-btn{display:block;width:100%;max-width:400px;margin:0 auto;background:linear-gradient(135deg,var(--green),var(--accent2));color:#fff;border:none;padding:16px 32px;border-radius:12px;font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:0 0 30px rgba(16,185,129,0.2);}
-.airdrop-cta-btn:hover{transform:translateY(-2px);box-shadow:0 0 40px rgba(16,185,129,0.35);}
 
-/* COMPARE */
-.diff-section{background:var(--bg2);padding:80px 40px;border-top:1px solid var(--border);border-bottom:1px solid var(--border);}
-.section-label{font-family:'Space Mono',monospace;font-size:11px;color:var(--accent2);text-transform:uppercase;letter-spacing:0.15em;margin-bottom:16px;}
-.section-title{font-size:clamp(24px,4vw,36px);font-weight:700;letter-spacing:-1px;margin-bottom:12px;}
-.section-sub{color:var(--muted);font-size:16px;max-width:480px;line-height:1.7;margin-bottom:48px;}
-.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;}
-.compare-card{border-radius:16px;padding:30px;border:1px solid var(--border);}
-.compare-card.bad{background:rgba(239,68,68,0.05);border-color:rgba(239,68,68,0.2);}
-.compare-card.good{background:rgba(16,185,129,0.05);border-color:rgba(16,185,129,0.2);}
-.compare-card h3{font-size:16px;font-weight:600;margin-bottom:18px;}
-.compare-list{list-style:none;display:flex;flex-direction:column;gap:11px;}
-.compare-list li{font-size:14px;color:var(--muted);display:flex;align-items:flex-start;gap:10px;line-height:1.5;}
-.x{color:#EF4444;font-weight:700;flex-shrink:0;}.check{color:var(--green);font-weight:700;flex-shrink:0;}
+/* Tiers */
+.tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:40px;}
+.tier{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px 18px;text-align:center;transition:all 0.25s;position:relative;}
+.tier:hover{transform:translateY(-4px);border-color:var(--accent);}
+.tier.hot{border-color:var(--accent);background:rgba(124,58,237,0.07);}
+.tier.hot::before{content:'HOT 🔥';position:absolute;top:10px;right:10px;background:var(--accent);color:#fff;font-size:9px;font-weight:700;font-family:'Space Mono',monospace;padding:2px 7px;border-radius:4px;}
+.tier-icon{font-size:30px;margin-bottom:8px;}
+.tier-name{font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;}
+.tier-reward{font-family:'Space Mono',monospace;font-size:22px;font-weight:700;color:var(--green);margin-bottom:3px;}
+.tier-token{font-size:11px;color:var(--muted);margin-bottom:14px;}
+.tier-tasks{list-style:none;text-align:left;display:flex;flex-direction:column;gap:6px;}
+.tier-tasks li{font-size:11px;color:var(--muted);display:flex;gap:5px;line-height:1.5;}
+.tier-tasks li::before{content:'→';color:var(--accent2);flex-shrink:0;font-size:10px;}
 
-/* CTA */
-.cta-section{padding:90px 40px;text-align:center;}
-.cta-section h2{font-size:clamp(28px,5vw,52px);font-weight:700;letter-spacing:-1.5px;margin-bottom:16px;}
-.cta-section p{color:var(--muted);font-size:17px;margin-bottom:40px;}
+/* ===== COMPARE ===== */
+.compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:40px;}
+.cmp{border-radius:16px;padding:28px;border:1px solid var(--border);}
+.cmp.bad{background:rgba(239,68,68,0.04);border-color:rgba(239,68,68,0.2);}
+.cmp.good{background:rgba(16,185,129,0.04);border-color:rgba(16,185,129,0.2);}
+.cmp h3{font-size:15px;font-weight:700;margin-bottom:16px;}
+.cmp ul{list-style:none;display:flex;flex-direction:column;gap:10px;}
+.cmp li{font-size:13px;color:var(--muted);display:flex;gap:8px;line-height:1.5;}
+.xi{color:var(--red);font-weight:700;flex-shrink:0;}
+.ci{color:var(--green);font-weight:700;flex-shrink:0;}
 
-/* CHAINS */
-.chains{padding:50px 40px;text-align:center;border-bottom:1px solid var(--border);}
-.chains p{font-size:12px;color:var(--muted);margin-bottom:18px;text-transform:uppercase;letter-spacing:0.1em;font-family:'Space Mono',monospace;}
+/* ===== CHAINS ===== */
+.chains{padding:48px 40px;text-align:center;border-bottom:1px solid var(--border);}
+.chains-label{font-size:11px;color:var(--muted);margin-bottom:18px;text-transform:uppercase;letter-spacing:0.1em;font-family:'Space Mono',monospace;}
 .chain-list{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;}
-.chain-tag{background:var(--card);border:1px solid var(--border);border-radius:100px;padding:9px 20px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.2s;}
+.chain-tag{background:var(--card);border:1px solid var(--border);border-radius:100px;padding:9px 20px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;transition:all 0.2s;}
 .chain-tag:hover{border-color:var(--accent2);color:var(--text);}
 
-/* TOAST */
-.toast{position:fixed;bottom:28px;right:28px;background:var(--card);border:1px solid var(--green);border-radius:12px;padding:12px 18px;font-size:14px;font-weight:600;color:var(--text);z-index:9999;display:flex;align-items:center;gap:10px;transform:translateY(100px);opacity:0;transition:all 0.3s;box-shadow:0 8px 24px rgba(0,0,0,0.4);max-width:320px;}
+/* ===== CTA ===== */
+.cta-section{position:relative;z-index:1;padding:100px 40px;text-align:center;overflow:hidden;}
+.cta-section::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,0.1) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;}
+.cta-section h2{font-size:clamp(28px,5vw,52px);font-weight:800;letter-spacing:-1.5px;margin-bottom:14px;}
+.cta-section p{color:var(--muted);font-size:16px;margin-bottom:36px;}
+
+/* ===== MODALS ===== */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:999;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+.overlay.open{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:36px 32px;max-width:420px;width:90%;position:relative;animation:modalIn 0.25s ease-out;}
+@keyframes modalIn{from{opacity:0;transform:scale(0.92);}to{opacity:1;transform:scale(1);}}
+.modal-x{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;}
+.modal-x:hover{color:var(--text);}
+.modal-title{font-size:20px;font-weight:700;margin-bottom:6px;}
+.modal-sub{color:var(--muted);font-size:13px;margin-bottom:22px;line-height:1.6;}
+.login-methods{display:flex;flex-direction:column;gap:10px;}
+.lbtn{width:100%;padding:12px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg2);color:var(--text);font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:12px;}
+.lbtn:hover{border-color:var(--accent);background:rgba(124,58,237,0.08);transform:translateX(3px);}
+.lbtn-icon{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.lbtn-text{flex:1;text-align:left;}
+.lbtn-text small{display:block;font-size:10px;color:var(--muted);font-weight:400;margin-top:1px;}
+.divider{display:flex;align-items:center;gap:10px;margin:6px 0;}
+.divider span{font-size:11px;color:var(--muted);}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* Terms scroll box */
+.terms-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;font-size:12px;color:var(--muted);line-height:1.8;max-height:160px;overflow-y:auto;margin-bottom:14px;}
+.terms-check{display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:18px;font-size:13px;}
+.terms-check input{width:16px;height:16px;cursor:pointer;accent-color:var(--accent);}
+.agree-btn{width:100%;background:var(--accent);color:#fff;border:none;padding:13px;border-radius:10px;font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;}
+.agree-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.agree-btn:not(:disabled):hover{background:#6D28D9;}
+
+/* Verify modal */
+.verify-inst{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px;font-size:12px;color:var(--muted);line-height:1.8;margin-bottom:18px;white-space:pre-line;}
+.verify-btns{display:flex;gap:10px;}
+.verify-btns button{flex:1;padding:11px;border-radius:9px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.2s;}
+.v-cancel{border:1px solid var(--border);background:transparent;color:var(--text);}
+.v-confirm{border:none;background:var(--green);color:#fff;}
+
+/* ===== TOAST ===== */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--card);border:1px solid var(--green);border-radius:12px;padding:11px 16px;font-size:13px;font-weight:600;color:var(--text);z-index:9999;display:flex;align-items:center;gap:8px;transform:translateY(100px);opacity:0;transition:all 0.3s;box-shadow:0 8px 24px rgba(0,0,0,0.4);max-width:300px;}
 .toast.show{transform:translateY(0);opacity:1;}
 
-/* TICKER */
-.ticker{background:var(--bg2);border-bottom:1px solid var(--border);padding:11px 40px;display:flex;gap:32px;font-family:'Space Mono',monospace;font-size:12px;overflow-x:auto;}
-.ticker-item{display:flex;align-items:center;gap:8px;white-space:nowrap;color:var(--muted);}
-.ticker-symbol{color:var(--text);font-weight:700;}
-.ticker-up{color:var(--green);}
-
-/* FOOTER */
-footer{border-top:1px solid var(--border);padding:28px 40px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;}
+/* ===== FOOTER ===== */
+footer{position:relative;z-index:1;border-top:1px solid var(--border);padding:28px 40px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;}
 .footer-links{display:flex;gap:20px;}
-.footer-links a{font-size:13px;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+.footer-links a{font-size:12px;color:var(--muted);text-decoration:none;transition:color 0.2s;}
 .footer-links a:hover{color:var(--text);}
 
 /* BILINGUAL */
@@ -198,98 +281,98 @@ body.lang-zh [data-vi]{display:none;}body.lang-zh [data-zh]{display:revert;}
 body.lang-es [data-vi]{display:none;}body.lang-es [data-es]{display:revert;}
 
 @media(max-width:768px){
-  nav,.lang-bar{padding:14px 20px;}.nav-links{display:none;}
-  .hero{padding:60px 20px 40px;}
-  .demo-section{padding:16px 20px 50px;}
-  .mockup-body{grid-template-columns:1fr;}.chat-area{display:none;}
-  .stats{grid-template-columns:1fr;}
-  .airdrop-section,.diff-section,.cta-section{padding:60px 20px;}
+  nav,.lang-bar{padding:12px 16px;}.nav-links{display:none;}
+  .hero{padding:60px 16px 40px;}.float-card{display:none;}
+  .preview-section,.section,.early-section,.cta-section{padding:60px 16px;}
+  .mockup-body{grid-template-columns:1fr;}.chat-side{display:none;}
   .tiers,.compare-grid{grid-template-columns:1fr;}
-  .chains{padding:40px 20px;}
-  footer{padding:20px;flex-direction:column;text-align:center;}
-  .wallet-section{padding:16px 20px;}
+  .chains,.footer{padding:36px 16px;}
+  .wallet-bar{padding:12px 16px;}
   .wallet-inner{flex-direction:column;}
+  .stats-row{gap:12px;}
 }
 </style>
 </head>
 <body class="lang-vi">
 
+<!-- BG -->
+<div class="bg-grid"></div>
+<div class="bg-glow1"></div>
+<div class="bg-glow2"></div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"><span id="toastMsg"></span></div>
 
+<!-- TERMS MODAL -->
+<div class="overlay" id="termsModal">
+  <div class="modal">
+    <button class="modal-x" onclick="closeAll()">✕</button>
+    <div class="modal-title">📋 <span data-vi>Điều khoản sử dụng</span><span data-en>Terms of Service</span><span data-ja>利用規約</span><span data-ko>이용약관</span><span data-zh>服务条款</span><span data-es>Términos de uso</span></div>
+    <p class="modal-sub" data-vi>Đọc và đồng ý để tiếp tục. Ví Web3 sẽ tự động tạo cho bạn.</p>
+    <p class="modal-sub" data-en>Read and agree to continue. A Web3 wallet will be auto-created for you.</p>
+    <p class="modal-sub" data-ja>続行するには読んで同意してください。Web3ウォレットが自動作成されます。</p>
+    <p class="modal-sub" data-ko>계속하려면 읽고 동의하세요. Web3 지갑이 자동 생성됩니다.</p>
+    <p class="modal-sub" data-zh>阅读并同意以继续。将自动为您创建Web3钱包。</p>
+    <p class="modal-sub" data-es>Lee y acepta para continuar. Se creará automáticamente una cartera Web3.</p>
+    <div class="terms-box">
+      <span data-vi>1. Ví Web3 được tạo tự động và gắn với tài khoản của bạn qua Privy.<br>2. Token SCFI hiện là token thử nghiệm trên Base Sepolia Testnet, không có giá trị thật.<br>3. Airdrop sẽ được phân phối khi dự án ra mắt Mainnet (TGE).<br>4. Để nhận token bạn cần ký một giao dịch testnet (miễn phí, $0 gas).<br>5. StreamFi không chịu trách nhiệm về biến động giá token sau TGE.<br>6. Mỗi người chỉ được tạo một tài khoản. Gian lận sẽ bị loại khỏi airdrop.<br>7. Dữ liệu của bạn được bảo vệ an toàn theo chính sách bảo mật của chúng tôi.</span>
+      <span data-en>1. A Web3 wallet is auto-created and linked to your account via Privy.<br>2. SCFI token is currently a test token on Base Sepolia Testnet with no real value.<br>3. Airdrop will be distributed at Mainnet launch (TGE).<br>4. To receive tokens you need to sign a testnet transaction (free, $0 gas).<br>5. StreamFi is not responsible for token price fluctuations after TGE.<br>6. Each person may only create one account. Fraud will be disqualified from airdrop.<br>7. Your data is kept secure per our privacy policy.</span>
+      <span data-ja>1. Web3ウォレットはPrivy経由で自動作成されアカウントにリンクされます。<br>2. SCFIトークンは現在Base Sepoliaテストネット上のテストトークンです。<br>3. エアドロップはメインネット起動時に配布されます。<br>4. トークン受け取りにはテストネットトランザクションへの署名が必要です（無料）。<br>5. TGE後のトークン価格変動についてStreamFiは責任を負いません。</span>
+      <span data-ko>1. Web3 지갑이 Privy를 통해 자동 생성되어 계정에 연결됩니다.<br>2. SCFI 토큰은 현재 Base Sepolia 테스트넷의 테스트 토큰입니다.<br>3. 에어드롭은 메인넷 출시(TGE) 시 배포됩니다.<br>4. 토큰을 받으려면 테스트넷 트랜잭션에 서명해야 합니다(무료).<br>5. TGE 이후 토큰 가격 변동에 대해 StreamFi는 책임지지 않습니다.</span>
+      <span data-zh>1. Web3钱包通过Privy自动创建并与您的账户关联。<br>2. SCFI代币目前是Base Sepolia测试网上的测试代币，没有实际价值。<br>3. 空投将在主网上线（TGE）时分发。<br>4. 接收代币需要签署一笔测试网交易（免费，0 gas费）。<br>5. TGE后代币价格波动StreamFi不承担责任。</span>
+      <span data-es>1. La cartera Web3 se crea automáticamente y se vincula a tu cuenta vía Privy.<br>2. El token SCFI es actualmente un token de prueba en Base Sepolia Testnet sin valor real.<br>3. El Airdrop se distribuirá en el lanzamiento de Mainnet (TGE).<br>4. Para recibir tokens necesitas firmar una transacción testnet (gratis, $0 gas).<br>5. StreamFi no es responsable de las fluctuaciones del precio del token después del TGE.</span>
+    </div>
+    <label class="terms-check">
+      <input type="checkbox" id="termsChk" onchange="document.getElementById('agreeBtn').disabled=!this.checked">
+      <span data-vi>Tôi đã đọc và đồng ý với điều khoản</span>
+      <span data-en>I have read and agree to the terms</span>
+      <span data-ja>利用規約を読み同意します</span>
+      <span data-ko>이용약관을 읽고 동의합니다</span>
+      <span data-zh>我已阅读并同意条款</span>
+      <span data-es>He leído y acepto los términos</span>
+    </label>
+    <button class="agree-btn" id="agreeBtn" disabled onclick="goToLogin()">
+      <span data-vi>Tiếp tục đăng nhập →</span><span data-en>Continue to Login →</span><span data-ja>ログインへ →</span><span data-ko>로그인으로 →</span><span data-zh>继续登录 →</span><span data-es>Continuar →</span>
+    </button>
+    <p style="font-size:10px;color:var(--muted);text-align:center;margin-top:12px;">Secured by <strong style="color:var(--accent)">Privy</strong> — <span data-vi>chỉ bạn mới truy cập được ví</span><span data-en>only you can access your wallet</span><span data-ja>ウォレットへのアクセスはあなただけ</span><span data-ko>지갑은 본인만 접근 가능</span><span data-zh>只有您才能访问您的钱包</span><span data-es>solo tú puedes acceder a tu cartera</span></p>
+  </div>
+</div>
+
 <!-- LOGIN MODAL -->
-<div class="login-modal-overlay" id="loginModal">
-  <div class="login-modal">
-    <button class="modal-close" onclick="closeLoginModal()">✕</button>
-    <div class="modal-title">
-      <span data-vi>Đăng nhập StreamFi</span>
-      <span data-en>Sign in to StreamFi</span>
-      <span data-ja>StreamFiにサインイン</span>
-      <span data-ko>StreamFi 로그인</span>
-      <span data-zh>登录StreamFi</span>
-      <span data-es>Iniciar sesión en StreamFi</span>
-    </div>
-    <p class="modal-sub">
-      <span data-vi>Chọn phương thức đăng nhập. Ví Web3 sẽ tự động được tạo cho bạn.</span>
-      <span data-en>Choose your login method. A Web3 wallet will be auto-created for you.</span>
-      <span data-ja>ログイン方法を選択してください。Web3ウォレットが自動作成されます。</span>
-      <span data-ko>로그인 방법을 선택하세요. Web3 지갑이 자동 생성됩니다.</span>
-      <span data-zh>选择登录方式。Web3钱包将自动为您创建。</span>
-      <span data-es>Elige tu método de inicio de sesión. Se creará automáticamente una cartera Web3.</span>
-    </p>
+<div class="overlay" id="loginModal">
+  <div class="modal">
+    <button class="modal-x" onclick="closeAll()">✕</button>
+    <div class="modal-title"><span data-vi>Đăng nhập StreamFi</span><span data-en>Sign in to StreamFi</span><span data-ja>StreamFiにサインイン</span><span data-ko>StreamFi 로그인</span><span data-zh>登录StreamFi</span><span data-es>Iniciar sesión</span></div>
+    <p class="modal-sub"><span data-vi>Chọn phương thức — ví Web3 sẽ tự tạo.</span><span data-en>Choose method — Web3 wallet auto-created.</span><span data-ja>方法を選択 — ウォレット自動作成。</span><span data-ko>방법 선택 — 지갑 자동 생성.</span><span data-zh>选择方式 — 自动创建钱包。</span><span data-es>Elige método — cartera creada automáticamente.</span></p>
     <div class="login-methods">
-      <button class="login-btn" onclick="loginWith('google')">
-        <div class="btn-icon" style="background:#fff;">🇬</div>
-        <div class="btn-label">
-          Google
-          <small><span data-vi>Đăng nhập nhanh bằng tài khoản Google</span><span data-en>Quick login with your Google account</span><span data-ja>Googleアカウントでクイックログイン</span><span data-ko>Google 계정으로 빠른 로그인</span><span data-zh>使用Google账号快速登录</span><span data-es>Inicio rápido con tu cuenta Google</span></small>
-        </div>
-        <span style="color:var(--muted);font-size:12px;">→</span>
-      </button>
-      <button class="login-btn" onclick="loginWith('twitter')">
-        <div class="btn-icon" style="background:#000;">𝕏</div>
-        <div class="btn-label">
-          Twitter / X
-          <small><span data-vi>Đồng bộ followers Twitter của bạn</span><span data-en>Sync your Twitter followers</span><span data-ja>Twitterフォロワーを同期</span><span data-ko>Twitter 팔로워 동기화</span><span data-zh>同步您的Twitter粉丝</span><span data-es>Sincroniza tus seguidores de Twitter</span></small>
-        </div>
-        <span style="color:var(--muted);font-size:12px;">→</span>
-      </button>
-      <button class="login-btn" onclick="loginWith('discord')">
-        <div class="btn-icon" style="background:#5865F2;color:#fff;font-size:16px;">⚔</div>
-        <div class="btn-label">
-          Discord
-          <small><span data-vi>Kết nối server Discord của bạn</span><span data-en>Connect your Discord server</span><span data-ja>Discordサーバーを接続</span><span data-ko>Discord 서버 연결</span><span data-zh>连接您的Discord服务器</span><span data-es>Conecta tu servidor de Discord</span></small>
-        </div>
-        <span style="color:var(--muted);font-size:12px;">→</span>
-      </button>
-      <div class="divider"><span data-vi>hoặc dùng ví có sẵn</span><span data-en>or connect existing wallet</span><span data-ja>または既存のウォレットで接続</span><span data-ko>또는 기존 지갑 연결</span><span data-zh>或连接现有钱包</span><span data-es>o conectar cartera existente</span></div>
-      <button class="login-btn" onclick="loginWith('metamask')">
-        <div class="btn-icon" style="background:#F6851B;">🦊</div>
-        <div class="btn-label">
-          MetaMask
-          <small><span data-vi>Kết nối ví MetaMask của bạn</span><span data-en>Connect your MetaMask wallet</span><span data-ja>MetaMaskウォレットを接続</span><span data-ko>MetaMask 지갑 연결</span><span data-zh>连接您的MetaMask钱包</span><span data-es>Conecta tu cartera MetaMask</span></small>
-        </div>
-        <span style="color:var(--muted);font-size:12px;">→</span>
-      </button>
-      <button class="login-btn" onclick="loginWith('phantom')">
-        <div class="btn-icon" style="background:#AB9FF2;">👻</div>
-        <div class="btn-label">
-          Phantom <span style="font-size:11px;color:var(--muted);">(Solana)</span>
-          <small><span data-vi>Kết nối ví Phantom Solana</span><span data-en>Connect Phantom Solana wallet</span><span data-ja>Phantom Solanaウォレットを接続</span><span data-ko>Phantom Solana 지갑 연결</span><span data-zh>连接Phantom Solana钱包</span><span data-es>Conecta cartera Phantom Solana</span></small>
-        </div>
-        <span style="color:var(--muted);font-size:12px;">→</span>
-      </button>
+      <button class="lbtn" onclick="loginWith('google')"><div class="lbtn-icon" style="background:#fff;">🇬</div><div class="lbtn-text">Google<small data-vi>Đăng nhập nhanh nhất</small><small data-en>Fastest login</small><small data-ja>最速ログイン</small><small data-ko>가장 빠른 로그인</small><small data-zh>最快登录</small><small data-es>Login más rápido</small></div>→</button>
+      <button class="lbtn" onclick="loginWith('twitter')"><div class="lbtn-icon" style="background:#000;">𝕏</div><div class="lbtn-text">Twitter / X<small data-vi>Đồng bộ followers</small><small data-en>Sync followers</small><small data-ja>フォロワー同期</small><small data-ko>팔로워 동기화</small><small data-zh>同步粉丝</small><small data-es>Sincronizar seguidores</small></div>→</button>
+      <button class="lbtn" onclick="loginWith('discord')"><div class="lbtn-icon" style="background:#5865F2;color:#fff;font-size:14px;">⚔</div><div class="lbtn-text">Discord<small data-vi>Kết nối server Discord</small><small data-en>Connect Discord server</small><small data-ja>Discordサーバー接続</small><small data-ko>Discord 서버 연결</small><small data-zh>连接Discord服务器</small><small data-es>Conectar servidor Discord</small></div>→</button>
+      <button class="lbtn" onclick="loginWith('tiktok')"><div class="lbtn-icon" style="background:#010101;color:#fff;font-size:14px;">♪</div><div class="lbtn-text">TikTok<small data-vi>Đồng bộ TikTok của bạn</small><small data-en>Sync your TikTok</small><small data-ja>TikTokを同期</small><small data-ko>TikTok 동기화</small><small data-zh>同步TikTok</small><small data-es>Sincronizar TikTok</small></div>→</button>
+      <div class="divider"><span data-vi>hoặc ví có sẵn</span><span data-en>or existing wallet</span><span data-ja>または既存のウォレット</span><span data-ko>또는 기존 지갑</span><span data-zh>或现有钱包</span><span data-es>o cartera existente</span></div>
+      <button class="lbtn" onclick="loginWith('metamask')"><div class="lbtn-icon" style="background:#F6851B;">🦊</div><div class="lbtn-text">MetaMask<small data-vi>Kết nối ví MetaMask</small><small data-en>Connect MetaMask wallet</small><small data-ja>MetaMask接続</small><small data-ko>MetaMask 연결</small><small data-zh>连接MetaMask</small><small data-es>Conectar MetaMask</small></div>→</button>
+      <button class="lbtn" onclick="loginWith('phantom')"><div class="lbtn-icon" style="background:#AB9FF2;">👻</div><div class="lbtn-text">Phantom <span style="font-size:10px;color:var(--muted)">Solana</span><small data-vi>Kết nối ví Phantom</small><small data-en>Connect Phantom wallet</small><small data-ja>Phantom接続</small><small data-ko>Phantom 연결</small><small data-zh>连接Phantom</small><small data-es>Conectar Phantom</small></div>→</button>
     </div>
-    <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:20px;">
-      <span data-vi>Được bảo vệ bởi</span><span data-en>Secured by</span><span data-ja>保護:</span><span data-ko>보안:</span><span data-zh>安全保护:</span><span data-es>Protegido por</span>
-      <strong style="color:var(--accent)"> Privy</strong>
-    </p>
+  </div>
+</div>
+
+<!-- VERIFY TASK MODAL -->
+<div class="overlay" id="verifyModal">
+  <div class="modal">
+    <button class="modal-x" onclick="document.getElementById('verifyModal').classList.remove('open')">✕</button>
+    <div class="modal-title" id="vTitle">✅ Xác nhận nhiệm vụ</div>
+    <p class="modal-sub" id="vDesc"></p>
+    <div class="verify-inst" id="vInst"></div>
+    <div class="verify-btns">
+      <button class="v-cancel" onclick="document.getElementById('verifyModal').classList.remove('open')"><span data-vi>Chưa xong</span><span data-en>Not yet</span><span data-ja>まだ</span><span data-ko>아직</span><span data-zh>还没</span><span data-es>Aún no</span></button>
+      <button class="v-confirm" onclick="confirmTask()"><span data-vi>✅ Đã xong! Nhận SCFI</span><span data-en>✅ Done! Claim SCFI</span><span data-ja>✅ 完了！SCFI取得</span><span data-ko>✅ 완료! SCFI 받기</span><span data-zh>✅ 完成！领取SCFI</span><span data-es>✅ ¡Listo! Reclamar SCFI</span></button>
+    </div>
   </div>
 </div>
 
 <!-- LANG BAR -->
 <div class="lang-bar">
-  <span style="font-size:12px;color:var(--muted);margin-right:4px;">🌐</span>
+  <span style="font-size:11px;color:var(--muted);margin-right:4px;">🌐</span>
   <button class="lang-btn active" onclick="setLang('vi',this)">🇻🇳 VI</button>
   <button class="lang-btn" onclick="setLang('en',this)">🇺🇸 EN</button>
   <button class="lang-btn" onclick="setLang('ja',this)">🇯🇵 JA</button>
@@ -300,304 +383,371 @@ body.lang-es [data-vi]{display:none;}body.lang-es [data-es]{display:revert;}
 
 <!-- NAV -->
 <nav>
-  <div class="logo">StreamFi</div>
+  <div class="logo"><div class="logo-dot"></div>StreamFi</div>
   <ul class="nav-links">
+    <li><a href="#early"><span data-vi>Đăng ký sớm</span><span data-en>Early Access</span><span data-ja>早期登録</span><span data-ko>사전 등록</span><span data-zh>早期注册</span><span data-es>Acceso temprano</span></a></li>
     <li><a href="#airdrop">Airdrop 🪂</a></li>
     <li><a href="#compare"><span data-vi>So sánh</span><span data-en>Compare</span><span data-ja>比較</span><span data-ko>비교</span><span data-zh>比较</span><span data-es>Comparar</span></a></li>
-    <li><a href="#chains">Chains</a></li>
   </ul>
   <div class="nav-right">
-    <!-- Shown when NOT logged in -->
-    <div id="navLoggedOut">
-      <button class="btn-login" onclick="openLoginModal()">
-        <span data-vi>🔑 Đăng nhập</span>
-        <span data-en>🔑 Sign In</span>
-        <span data-ja>🔑 ログイン</span>
-        <span data-ko>🔑 로그인</span>
-        <span data-zh>🔑 登录</span>
-        <span data-es>🔑 Iniciar sesión</span>
+    <div id="navOut">
+      <button class="btn-login" onclick="openLogin()">
+        <span data-vi>🔑 Đăng nhập</span><span data-en>🔑 Sign In</span><span data-ja>🔑 ログイン</span><span data-ko>🔑 로그인</span><span data-zh>🔑 登录</span><span data-es>🔑 Ingresar</span>
       </button>
     </div>
-    <!-- Shown when logged in -->
-    <div class="user-info" id="navLoggedIn">
-      <div class="user-avatar" id="userAvatar">?</div>
+    <div class="user-info" id="navIn">
+      <div class="user-avatar" id="uAvatar">?</div>
       <div>
-        <div id="userName" style="font-size:13px;font-weight:600;"></div>
-        <div class="user-address" id="userAddr"></div>
+        <div id="uName" style="font-size:12px;font-weight:600;"></div>
+        <div id="uAddr" style="font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;"></div>
       </div>
-      <div class="user-balance" id="userBal">0 SCFI</div>
-      <button class="btn-logout" onclick="logoutUser()">
-        <span data-vi>Đăng xuất</span><span data-en>Sign out</span><span data-ja>ログアウト</span><span data-ko>로그아웃</span><span data-zh>退出</span><span data-es>Cerrar sesión</span>
-      </button>
+      <div class="user-bal" id="uBal">0 SCFI</div>
+      <button class="btn-logout" onclick="logoutUser()"><span data-vi>Thoát</span><span data-en>Logout</span><span data-ja>ログアウト</span><span data-ko>로그아웃</span><span data-zh>退出</span><span data-es>Salir</span></button>
     </div>
   </div>
 </nav>
 
-<!-- TICKER -->
-<div class="ticker">
-  <div class="ticker-item"><span class="ticker-symbol">$SCFI</span><span class="ticker-up">↑ 12.4%</span></div>
-  <div class="ticker-item"><span class="ticker-symbol">Network:</span> Base Sepolia Testnet</div>
-  <div class="ticker-item"><span class="ticker-symbol">Supply:</span> 1,000,000,000 SCFI</div>
-  <div class="ticker-item"><span class="ticker-symbol">Airdrop Pool:</span><span class="ticker-up"> 500,000,000 SCFI (50%)</span></div>
-  <div class="ticker-item"><span class="ticker-symbol">Creator Fee:</span><span class="ticker-up"> 0% 🎉</span></div>
-</div>
-
-<!-- WALLET SECTION (appears after login) -->
-<div class="wallet-section" id="walletSection">
+<!-- WALLET BAR (shown after login) -->
+<div class="wallet-bar" id="walletBar">
   <div class="wallet-inner">
-    <div class="wallet-card">
-      <div class="wallet-icon">💼</div>
-      <div class="wallet-details">
-        <h4><span data-vi>Địa chỉ ví của bạn</span><span data-en>Your wallet address</span><span data-ja>あなたのウォレットアドレス</span><span data-ko>내 지갑 주소</span><span data-zh>您的钱包地址</span><span data-es>Tu dirección de cartera</span></h4>
-        <p id="walletAddr" style="font-size:12px;">0x0000...0000</p>
-      </div>
+    <div class="wcard">
+      <div class="wcard-icon">💼</div>
+      <div><h5><span data-vi>Địa chỉ ví</span><span data-en>Wallet address</span><span data-ja>ウォレットアドレス</span><span data-ko>지갑 주소</span><span data-zh>钱包地址</span><span data-es>Dirección cartera</span></h5><p id="wAddr" style="font-size:11px;">0x0000...0000</p></div>
     </div>
-    <div class="wallet-card">
-      <div class="wallet-icon">🪙</div>
-      <div class="wallet-details">
-        <h4>SCFI Balance</h4>
-        <p class="balance" id="walletBalance">0 SCFI</p>
-      </div>
+    <div class="wcard">
+      <div class="wcard-icon">🪙</div>
+      <div><h5>SCFI Balance</h5><p class="green" id="wBal">0 SCFI</p></div>
     </div>
-    <div class="wallet-actions">
-      <button class="wallet-action-btn" onclick="showToast('🪂 Airdrop tasks coming soon!')">
-        <span data-vi>Nhận Airdrop</span><span data-en>Claim Airdrop</span><span data-ja>エアドロップ取得</span><span data-ko>에어드롭 받기</span><span data-zh>领取空投</span><span data-es>Reclamar Airdrop</span>
-      </button>
-      <button class="wallet-action-btn primary" onclick="showToast('📺 Live feature launching soon!')">
-        <span data-vi>🎤 Bắt đầu Live</span><span data-en>🎤 Go Live</span><span data-ja>🎤 配信開始</span><span data-ko>🎤 라이브 시작</span><span data-zh>🎤 开始直播</span><span data-es>🎤 Iniciar Live</span>
-      </button>
+    <div class="wcard">
+      <div class="wcard-icon">🏆</div>
+      <div><h5><span data-vi>Điểm Airdrop</span><span data-en>Airdrop Points</span><span data-ja>エアドロップポイント</span><span data-ko>에어드롭 포인트</span><span data-zh>空投积分</span><span data-es>Puntos Airdrop</span></h5><p class="green" id="wPts">0 pts</p></div>
+    </div>
+    <div class="wactions">
+      <button class="wbtn" onclick="document.getElementById('airdrop').scrollIntoView({behavior:'smooth'})">🪂 Airdrop</button>
+      <button class="wbtn primary" onclick="showToast('📺 Live feature coming soon!')">🎤 <span data-vi>Bắt đầu Live</span><span data-en>Go Live</span><span data-ja>配信開始</span><span data-ko>라이브 시작</span><span data-zh>开始直播</span><span data-es>Iniciar Live</span></button>
     </div>
   </div>
 </div>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-badge">⚡ <span data-vi><span style="color:var(--green)">Đang xây dựng</span> · Mạng Base</span><span data-en><span style="color:var(--green)">Building Now</span> · Base Network</span><span data-ja><span style="color:var(--green)">開発中</span> · Base</span><span data-ko><span style="color:var(--green)">개발 중</span> · Base</span><span data-zh><span style="color:var(--green)">构建中</span> · Base</span><span data-es><span style="color:var(--green)">En desarrollo</span> · Base</span></div>
-  <h1 data-vi>Live stream.<br>Nhận donate.<br><em>100% của bạn.</em></h1>
-  <h1 data-en>Go Live.<br>Get Donations.<br><em>Keep 100%.</em></h1>
-  <h1 data-ja>配信する。<br>投げ銭を受け取る。<br><em>100%あなたのもの。</em></h1>
-  <h1 data-ko>라이브 스트림.<br>후원금 받기.<br><em>100% 당신 것.</em></h1>
-  <h1 data-zh>开始直播。<br>获得打赏。<br><em>100%归你所有。</em></h1>
-  <h1 data-es>Transmite en vivo.<br>Recibe donaciones.<br><em>El 100% es tuyo.</em></h1>
-  <p data-vi>Nền tảng livestream Web3 đầu tiên — fan donate token trực tiếp cho KOL, không qua trung gian.</p>
-  <p data-en>The first Web3 livestream platform — fans donate tokens directly to creators, zero middlemen.</p>
-  <p data-ja>初のWeb3ライブ配信プラットフォーム — ファンが直接KOLにトークンを寄付。</p>
-  <p data-ko>최초의 Web3 라이브 스트리밍 플랫폼 — 팬이 직접 KOL에게 토큰 기부.</p>
-  <p data-zh>首个Web3直播平台——粉丝直接向KOL打赏代币，零中间商。</p>
-  <p data-es>La primera plataforma de livestream Web3 — los fans donan tokens directamente a los creadores.</p>
-  <div class="hero-btns" id="heroBtns">
-    <button class="btn-primary" onclick="openLoginModal()">
-      🚀 <span data-vi>Đăng nhập / Đăng ký</span><span data-en>Sign In / Register</span><span data-ja>ログイン / 登録</span><span data-ko>로그인 / 등록</span><span data-zh>登录 / 注册</span><span data-es>Iniciar sesión / Registrarse</span>
-    </button>
-    <button class="btn-secondary" onclick="document.getElementById('airdrop').scrollIntoView({behavior:'smooth'})">
-      🪂 <span data-vi>Nhận Airdrop</span><span data-en>Get Airdrop</span><span data-ja>エアドロップ</span><span data-ko>에어드롭</span><span data-zh>获取空投</span><span data-es>Obtener Airdrop</span>
+  <!-- Floating cards -->
+  <div class="float-card float-card-1">
+    <div class="float-avatar" style="background:linear-gradient(135deg,#7C3AED,#06B6D4);">🎤</div>
+    <div><div style="font-size:12px;font-weight:600;">@nguyenminh</div><div style="font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px;"><div class="live-pip"></div>LIVE · 1.2K</div></div>
+  </div>
+  <div class="float-card float-card-2">
+    <div class="donate-pill">+15 SCFI 🎆</div>
+    <div style="font-size:11px;color:var(--muted);">@fan_abc</div>
+  </div>
+  <div class="float-card float-card-3">
+    <div class="float-avatar" style="background:linear-gradient(135deg,#10B981,#06B6D4);">🎵</div>
+    <div><div style="font-size:12px;font-weight:600;">@musicstar</div><div style="font-size:10px;color:var(--muted);display:flex;align-items:center;gap:4px;"><div class="live-pip"></div>LIVE · 847</div></div>
+  </div>
+  <div class="float-card float-card-4">
+    <div style="font-size:11px;color:var(--muted);">KOL nhận</div>
+    <div style="font-family:'Space Mono',monospace;font-size:14px;font-weight:700;color:var(--green);">100%</div>
+    <div style="font-size:18px;">💰</div>
+  </div>
+
+  <!-- Ticker -->
+  <div class="ticker-wrap" style="max-width:600px;">
+    <div class="ticker-inner">
+      <div class="ticker-item">$SCFI <span>↑ 12.4%</span></div>
+      <div class="ticker-item">Airdrop Pool: <span>500M SCFI</span></div>
+      <div class="ticker-item">Creator Fee: <span>0%</span></div>
+      <div class="ticker-item">Network: <span>Base Sepolia</span></div>
+      <div class="ticker-item">TGE: <span>Coming Soon</span></div>
+      <div class="ticker-item">$SCFI <span>↑ 12.4%</span></div>
+      <div class="ticker-item">Airdrop Pool: <span>500M SCFI</span></div>
+      <div class="ticker-item">Creator Fee: <span>0%</span></div>
+      <div class="ticker-item">Network: <span>Base Sepolia</span></div>
+      <div class="ticker-item">TGE: <span>Coming Soon</span></div>
+    </div>
+  </div>
+
+  <div class="hero-badge"><div class="badge-dot"></div><span data-vi>Đang xây dựng · Mạng Base</span><span data-en>Building Now · Base Network</span><span data-ja>開発中 · Base</span><span data-ko>개발 중 · Base</span><span data-zh>构建中 · Base</span><span data-es>En desarrollo · Base</span></div>
+
+  <h1 data-vi>Stream thật.<br>Kiếm thật.<br><span class="grad">100% của bạn.</span></h1>
+  <h1 data-en>Stream live.<br>Earn real.<br><span class="grad">Keep 100%.</span></h1>
+  <h1 data-ja>配信する。<br>稼ぐ。<br><span class="grad">100%あなたのもの。</span></h1>
+  <h1 data-ko>라이브 스트리밍.<br>실제로 버세요.<br><span class="grad">100% 당신 것.</span></h1>
+  <h1 data-zh>直播。<br>真实赚取。<br><span class="grad">100%归你所有。</span></h1>
+  <h1 data-es>Transmite en vivo.<br>Gana de verdad.<br><span class="grad">El 100% es tuyo.</span></h1>
+
+  <p data-vi>Nền tảng livestream Web3 đầu tiên — fan donate token trực tiếp cho KOL, không qua trung gian, không bị cắt phần trăm.</p>
+  <p data-en>The first Web3 livestream platform — fans donate tokens directly to creators, zero middlemen, zero cuts.</p>
+  <p data-ja>初のWeb3ライブ配信プラットフォーム — ファンがKOLに直接トークンを寄付、仲介なし。</p>
+  <p data-ko>최초의 Web3 라이브 스트리밍 플랫폼 — 팬이 직접 KOL에게 토큰 기부, 중간 수수료 없음.</p>
+  <p data-zh>首个Web3直播平台 — 粉丝直接向KOL打赏代币，零中间商，零抽成。</p>
+  <p data-es>La primera plataforma de livestream Web3 — fans donan tokens directamente a creadores, sin intermediarios.</p>
+
+  <div class="hero-btns">
+    <button class="btn-primary" onclick="openLogin()">🚀 <span data-vi>Đăng ký nhận Airdrop</span><span data-en>Register for Airdrop</span><span data-ja>エアドロップ登録</span><span data-ko>에어드롭 등록</span><span data-zh>注册领取空投</span><span data-es>Registrarse para Airdrop</span></button>
+    <button class="btn-outline" onclick="document.getElementById('preview').scrollIntoView({behavior:'smooth'})">▶ <span data-vi>Xem demo</span><span data-en>Watch demo</span><span data-ja>デモを見る</span><span data-ko>데모 보기</span><span data-zh>查看演示</span><span data-es>Ver demo</span></button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-pill"><div class="num">0%</div><div class="lbl"><span data-vi>Phí nền tảng</span><span data-en>Platform fee</span><span data-ja>手数料</span><span data-ko>플랫폼 수수료</span><span data-zh>平台费用</span><span data-es>Tarifa plataforma</span></div></div>
+    <div class="stat-pill"><div class="num">500M</div><div class="lbl">SCFI Airdrop</div></div>
+    <div class="stat-pill"><div class="num">~$0.001</div><div class="lbl"><span data-vi>Phí donate</span><span data-en>Per donation</span><span data-ja>寄付コスト</span><span data-ko>기부 수수료</span><span data-zh>打赏费用</span><span data-es>Por donación</span></div></div>
+    <div class="stat-pill"><div class="num">Web2 UX</div><div class="lbl"><span data-vi>Không cần ví</span><span data-en>No wallet needed</span><span data-ja>ウォレット不要</span><span data-ko>지갑 불필요</span><span data-zh>无需钱包</span><span data-es>Sin cartera</span></div></div>
+  </div>
+</section>
+
+<!-- STREAM PREVIEW -->
+<div class="preview-section" id="preview">
+  <div class="stream-mockup">
+    <div class="mockup-bar">
+      <div class="mock-dot" style="background:#FF5F57;"></div>
+      <div class="mock-dot" style="background:#FFBD2E;"></div>
+      <div class="mock-dot" style="background:#28CA41;"></div>
+      <div class="mock-url">streamfi.app/live/nguyenminh</div>
+      <div class="live-chip"><div style="width:5px;height:5px;background:#fff;border-radius:50%;"></div>LIVE</div>
+    </div>
+    <div class="mockup-body">
+      <div class="video-zone">
+        <div class="wave-bars">
+          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+          <div class="wave-bar"></div><div class="wave-bar"></div>
+        </div>
+        <div class="kol-avatar">🎤</div>
+        <div class="kol-name-mock">Nguyễn Minh</div>
+        <div class="viewers-mock"><span id="viewerCount">1,247</span> <span data-vi>đang xem</span><span data-en>watching</span><span data-ja>視聴中</span><span data-ko>시청 중</span><span data-zh>观看中</span><span data-es>viendo</span></div>
+        <div class="donate-float">🎆</div>
+        <div class="donate-float">❤️</div>
+        <div class="donate-float">👑</div>
+      </div>
+      <div class="chat-side">
+        <div class="chat-hdr"><div class="online-dot"></div>Live Chat</div>
+        <div class="chat-msgs" id="chatMsgs">
+          <div class="cmsg cdonate"><div class="cu">@tranlan99</div><div>→ <span class="camt">15 SCFI</span> 🎇</div></div>
+          <div class="cmsg"><span class="cu">@hoanganh:</span> great stream! 🔥</div>
+          <div class="cmsg cdonate"><div class="cu">@cryptofan</div><div>→ <span class="camt">10 SCFI</span> 🎆</div></div>
+          <div class="cmsg"><span class="cu">@web3girl:</span> so easy!</div>
+        </div>
+        <div class="gift-row">
+          <button class="gbtn" id="g10" onclick="sendGift(10,'❤️')" disabled>❤️ 10</button>
+          <button class="gbtn hot" id="g15" onclick="sendGift(15,'🎆')" disabled>🎆 15</button>
+          <button class="gbtn" id="g50" onclick="sendGift(50,'👑')" disabled>👑 50</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EARLY ACCESS SECTION (main landing) -->
+<section class="early-section" id="early">
+  <div class="early-inner">
+    <div class="sec-label">Early Access</div>
+    <h2 data-vi>Tham gia sớm.<br>Nhận <span style="color:var(--green);">SCFI miễn phí.</span></h2>
+    <h2 data-en>Join Early.<br>Earn <span style="color:var(--green);">Free SCFI.</span></h2>
+    <h2 data-ja>早期参加。<br><span style="color:var(--green);">無料SCFIを獲得。</span></h2>
+    <h2 data-ko>일찍 참여하세요.<br><span style="color:var(--green);">무료 SCFI 획득.</span></h2>
+    <h2 data-zh>早期加入。<br><span style="color:var(--green);">免费获取SCFI。</span></h2>
+    <h2 data-es>Únete Pronto.<br><span style="color:var(--green);">Gana SCFI Gratis.</span></h2>
+    <p data-vi>Không cần ví, không cần tiền thật. Đăng nhập và follow các kênh để nhận token — sẽ đổi thành SCFI Mainnet thật khi TGE.</p>
+    <p data-en>No wallet or real money needed. Sign in and follow our channels to earn tokens — converted to real SCFI Mainnet at TGE.</p>
+    <p data-ja>ウォレットも実際のお金も不要。サインインしてチャンネルをフォローしてトークンを獲得 — TGE時にリアルSCFIメインネットに変換されます。</p>
+    <p data-ko>지갑이나 실제 돈 불필요. 로그인하고 채널을 팔로우하여 토큰 획득 — TGE 시 실제 SCFI 메인넷으로 전환됩니다.</p>
+    <p data-zh>无需钱包或真实资金。登录并关注我们的频道以获得代币 — TGE时转换为真实SCFI主网。</p>
+    <p data-es>Sin cartera ni dinero real. Inicia sesión y sigue nuestros canales para ganar tokens — convertidos a SCFI Mainnet real en el TGE.</p>
+
+    <!-- Social tasks (visible to all, requires login to claim) -->
+    <div class="social-tasks" id="socialTasks">
+      <div class="stask" id="st-twitter" onclick="doSocialTask('twitter','Follow @streamfiapp',10,'https://x.com/streamfiapp')">
+        <div class="stask-icon" style="background:#000;">𝕏</div>
+        <div class="stask-info">
+          <div class="stask-name">Follow @streamfiapp</div>
+          <div class="stask-desc" data-vi>Theo dõi trang Twitter/X của StreamFi</div>
+          <div class="stask-desc" data-en>Follow StreamFi on Twitter/X</div>
+          <div class="stask-desc" data-ja>StreamFiのTwitter/Xをフォロー</div>
+          <div class="stask-desc" data-ko>StreamFi Twitter/X 팔로우</div>
+          <div class="stask-desc" data-zh>关注StreamFi的Twitter/X</div>
+          <div class="stask-desc" data-es>Seguir StreamFi en Twitter/X</div>
+        </div>
+        <div><div class="stask-reward">+10 SCFI</div><div class="stask-status" id="ss-twitter"></div></div>
+      </div>
+
+      <div class="stask" id="st-discord" onclick="doSocialTask('discord','Join Discord',12,'https://discord.gg/KZzbwqtv')">
+        <div class="stask-icon" style="background:#5865F2;color:#fff;font-size:16px;">⚔</div>
+        <div class="stask-info">
+          <div class="stask-name">Join Discord</div>
+          <div class="stask-desc" data-vi>Tham gia server Discord StreamFi</div>
+          <div class="stask-desc" data-en>Join StreamFi Discord server</div>
+          <div class="stask-desc" data-ja>StreamFi Discordサーバーに参加</div>
+          <div class="stask-desc" data-ko>StreamFi Discord 서버 참여</div>
+          <div class="stask-desc" data-zh>加入StreamFi Discord服务器</div>
+          <div class="stask-desc" data-es>Unirse al servidor Discord de StreamFi</div>
+        </div>
+        <div><div class="stask-reward">+12 SCFI</div><div class="stask-status" id="ss-discord"></div></div>
+      </div>
+
+      <div class="stask" id="st-telegram" onclick="doSocialTask('telegram','Join Telegram',12,'https://t.me/StreamFi_App')">
+        <div class="stask-icon" style="background:#2AABEE;color:#fff;font-size:16px;">✈</div>
+        <div class="stask-info">
+          <div class="stask-name">Join Telegram</div>
+          <div class="stask-desc" data-vi>Tham gia group Telegram @StreamFi_App</div>
+          <div class="stask-desc" data-en>Join Telegram group @StreamFi_App</div>
+          <div class="stask-desc" data-ja>Telegram @StreamFi_Appに参加</div>
+          <div class="stask-desc" data-ko>Telegram @StreamFi_App 참여</div>
+          <div class="stask-desc" data-zh>加入Telegram群 @StreamFi_App</div>
+          <div class="stask-desc" data-es>Unirse al grupo Telegram @StreamFi_App</div>
+        </div>
+        <div><div class="stask-reward">+12 SCFI</div><div class="stask-status" id="ss-telegram"></div></div>
+      </div>
+
+      <div class="stask" id="st-retweet" onclick="doSocialTask('retweet','Retweet post',10,'https://x.com/streamfiapp')">
+        <div class="stask-icon" style="background:#1DA1F2;color:#fff;font-size:16px;">🔁</div>
+        <div class="stask-info">
+          <div class="stask-name">Retweet</div>
+          <div class="stask-desc" data-vi>Retweet bài viết mới nhất của StreamFi</div>
+          <div class="stask-desc" data-en>Retweet StreamFi's latest post</div>
+          <div class="stask-desc" data-ja>StreamFiの最新投稿をリツイート</div>
+          <div class="stask-desc" data-ko>StreamFi 최신 게시물 리트윗</div>
+          <div class="stask-desc" data-zh>转发StreamFi最新帖子</div>
+          <div class="stask-desc" data-es>Retweetear la última publicación de StreamFi</div>
+        </div>
+        <div><div class="stask-reward">+10 SCFI</div><div class="stask-status" id="ss-retweet"></div></div>
+      </div>
+
+      <div class="stask" id="st-invite" onclick="doSocialTask('invite','Invite friend',15,'')">
+        <div class="stask-icon" style="background:rgba(124,58,237,0.2);font-size:18px;">👥</div>
+        <div class="stask-info">
+          <div class="stask-name"><span data-vi>Mời bạn bè</span><span data-en>Invite friend</span><span data-ja>友達招待</span><span data-ko>친구 초대</span><span data-zh>邀请朋友</span><span data-es>Invitar amigo</span></div>
+          <div class="stask-desc" data-vi>Mời 1 người bạn đăng nhập vào StreamFi</div>
+          <div class="stask-desc" data-en>Invite 1 friend to sign in to StreamFi</div>
+          <div class="stask-desc" data-ja>1人の友達をStreamFiに招待</div>
+          <div class="stask-desc" data-ko>친구 1명을 StreamFi에 초대</div>
+          <div class="stask-desc" data-zh>邀请1位朋友登录StreamFi</div>
+          <div class="stask-desc" data-es>Invitar 1 amigo a registrarse en StreamFi</div>
+        </div>
+        <div><div class="stask-reward">+15 SCFI</div><div class="stask-status" id="ss-invite"></div></div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap" id="progressWrap" style="display:none;">
+      <div class="progress-labels">
+        <span><span data-vi>Nhiệm vụ đã hoàn thành</span><span data-en>Tasks completed</span><span data-ja>完了タスク</span><span data-ko>완료된 작업</span><span data-zh>已完成任务</span><span data-es>Tareas completadas</span>: <span id="tasksCount">0</span>/5</span>
+        <span id="totalEarned">0 SCFI</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%;"></div></div>
+      <div class="progress-labels">
+        <span style="color:var(--green);" data-vi>🎉 Hoàn thành hết để nhận Tier 2!</span>
+        <span style="color:var(--green);" data-en>🎉 Complete all to get Tier 2!</span>
+        <span style="color:var(--green);" data-ja>🎉 全完了でTier 2獲得！</span>
+        <span style="color:var(--green);" data-ko>🎉 모두 완료하면 Tier 2 획득!</span>
+        <span style="color:var(--green);" data-zh>🎉 全部完成获得Tier 2！</span>
+        <span style="color:var(--green);" data-es>🎉 ¡Completa todo para Tier 2!</span>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="earlyBtn" onclick="openLogin()" style="margin-top:24px;width:100%;max-width:400px;font-size:16px;padding:16px;">
+      🪂 <span data-vi>Đăng nhập & Bắt đầu nhận SCFI</span><span data-en>Sign In & Start Earning SCFI</span><span data-ja>サインイン＆SCFI獲得開始</span><span data-ko>로그인 & SCFI 획득 시작</span><span data-zh>登录并开始获取SCFI</span><span data-es>Iniciar sesión y empezar a ganar SCFI</span>
     </button>
   </div>
 </section>
 
-<!-- LIVE MOCKUP -->
-<div class="demo-section">
-  <div class="live-mockup">
-    <div class="mockup-top">
-      <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-      <span style="font-size:13px;color:var(--muted);margin-left:8px;">streamfi.app/live/nguyenminh</span>
-      <div class="live-badge"><div class="live-dot"></div>LIVE</div>
-    </div>
-    <div class="mockup-body">
-      <div class="video-area" style="flex-direction:column;gap:0;padding:0;position:relative;">
-        <!-- Video Player -->
-        <video id="liveVideo" style="width:100%;height:100%;min-height:260px;object-fit:cover;background:#000;" playsinline muted autoplay></video>
-        <!-- Offline overlay -->
-        <div id="offlineOverlay" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);">
-          <div class="avatar-ring">🎤</div>
-          <div class="kol-name">Nguyễn Minh</div>
-          <div class="viewer-count" style="margin-bottom:16px;"><span class="viewers-num" id="viewerCount">0</span> <span data-vi>đang xem</span><span data-en>watching</span><span data-ja>視聴中</span><span data-ko>시청 중</span><span data-zh>观看中</span><span data-es>viendo</span></div>
-          <div style="font-size:12px;color:var(--muted);font-family:'Space Mono',monospace;">● OFFLINE — <span data-vi>Chưa có ai phát live</span><span data-en>No stream active</span><span data-ja>配信なし</span><span data-ko>스트림 없음</span><span data-zh>无直播</span><span data-es>Sin transmisión</span></div>
-        </div>
-        <!-- KOL Go Live button -->
-        <div id="kolControls" style="display:none;position:absolute;bottom:12px;left:50%;transform:translateX(-50%);">
-          <button onclick="goLive()" style="background:#EF4444;color:#fff;border:none;padding:10px 24px;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:8px;">
-            <span style="width:8px;height:8px;background:#fff;border-radius:50%;animation:pulse 1s infinite;"></span>
-            <span data-vi>Bắt đầu Live</span><span data-en>Go Live</span><span data-ja>配信開始</span><span data-ko>라이브 시작</span><span data-zh>开始直播</span><span data-es>Iniciar Live</span>
-          </button>
-        </div>
-      </div>
-      <div class="chat-area">
-        <div class="chat-header">💬 Live Chat</div>
-        <div class="chat-messages" id="chatMessages">
-          <div class="chat-msg donate-msg"><div class="chat-user">@tranlan99</div><div>→ <span class="donate-amount">100 SCFI</span> 🎇</div></div>
-          <div class="chat-msg"><span class="chat-user">@hoanganh:</span> great stream! 🔥</div>
-          <div class="chat-msg donate-msg"><div class="chat-user">@cryptofan</div><div>→ <span class="donate-amount">500 SCFI</span> 🎆</div></div>
-          <div class="chat-msg"><span class="chat-user">@web3girl:</span> so easy to donate!</div>
-        </div>
-        <div class="donate-btns">
-          <button class="gift-btn" id="gift10" onclick="sendGift(10,'❤️')">❤️ 10</button>
-          <button class="gift-btn hot" id="gift100" onclick="sendGift(100,'🎆')">🎆 100</button>
-          <button class="gift-btn" id="gift500" onclick="sendGift(500,'👑')">👑 500</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- AIRDROP SECTION -->
+<section class="section" id="airdrop" style="background:var(--bg);">
+  <div class="sec-label">AIRDROP SEASON 1</div>
+  <div class="sec-title" data-vi>500 triệu SCFI cho cộng đồng.</div>
+  <div class="sec-title" data-en>500 Million SCFI for the community.</div>
+  <div class="sec-title" data-ja>コミュニティに5億SCFI。</div>
+  <div class="sec-title" data-ko>커뮤니티를 위한 5억 SCFI.</div>
+  <div class="sec-title" data-zh>5亿SCFI献给社区。</div>
+  <div class="sec-title" data-es>500 Millones de SCFI para la comunidad.</div>
 
-<!-- STATS -->
-<div class="stats">
-  <div class="stat-item">
-    <span class="stat-num">0%</span>
-    <div class="stat-label"><span data-vi>Phí nền tảng</span><span data-en>Platform fee</span><span data-ja>手数料</span><span data-ko>수수료</span><span data-zh>平台费用</span><span data-es>Tarifa plataforma</span></div>
-  </div>
-  <div class="stat-item">
-    <span class="stat-num">~$0.001</span>
-    <div class="stat-label"><span data-vi>Phí mỗi donate</span><span data-en>Per donation fee</span><span data-ja>寄付あたりの費用</span><span data-ko>기부당 수수료</span><span data-zh>每次打赏费用</span><span data-es>Costo por donación</span></div>
-  </div>
-  <div class="stat-item">
-    <span class="stat-num">50%</span>
-    <div class="stat-label"><span data-vi>Token cho Airdrop</span><span data-en>Tokens for Airdrop</span><span data-ja>エアドロップ用</span><span data-ko>에어드롭용</span><span data-zh>用于空投</span><span data-es>Para Airdrop</span></div>
-  </div>
-</div>
-
-<!-- AIRDROP -->
-<section class="airdrop-section" id="airdrop">
-  <div class="airdrop-header">
-    <div class="airdrop-badge">🪂 AIRDROP SEASON 1</div>
-    <h2 data-vi>Tham gia sớm — Nhận 500 triệu SCFI.</h2>
-    <h2 data-en>Join Early — Earn from 500M SCFI Pool.</h2>
-    <h2 data-ja>早期参加 — 5億SCFIプールから獲得。</h2>
-    <h2 data-ko>일찍 참여 — 5억 SCFI 풀에서 획득.</h2>
-    <h2 data-zh>早期加入 — 从5亿SCFI池中获取。</h2>
-    <h2 data-es>Únete Pronto — Gana del Pool de 500M SCFI.</h2>
-    <p data-vi>Không cần ví, không cần tiền thật. Đăng nhập và hoàn thành nhiệm vụ là nhận token.</p>
-    <p data-en>No wallet or real money needed. Sign in and complete tasks to earn tokens.</p>
-    <p data-ja>ウォレットも実際のお金も不要。サインインしてタスクを完了するだけ。</p>
-    <p data-ko>지갑이나 실제 돈 불필요. 로그인하고 작업 완료하면 토큰 획득.</p>
-    <p data-zh>无需钱包或真实资金。登录并完成任务即可获得代币。</p>
-    <p data-es>Sin cartera ni dinero real. Inicia sesión y completa tareas para ganar tokens.</p>
-  </div>
-  <div class="airdrop-pool">
+  <div class="pool-card">
     <span class="pool-num">500,000,000</span>
-    <div class="pool-label">SCFI · 50% <span data-vi>tổng cung</span><span data-en>of total supply</span><span data-ja>総供給</span><span data-ko>총 공급</span><span data-zh>总供应</span><span data-es>del suministro total</span></div>
-    <div class="pool-bar-label"><span>8% <span data-vi>đã phân phối</span><span data-en>distributed</span><span data-ja>配布済み</span><span data-ko>배포됨</span><span data-zh>已分配</span><span data-es>distribuido</span></span><span>40M / 500M</span></div>
-    <div class="pool-bar"><div class="pool-fill"></div></div>
+    <div class="pool-sub">SCFI · 50% <span data-vi>tổng cung · Không cần đầu tư tiền thật</span><span data-en>total supply · No real money needed</span><span data-ja>総供給 · 実際のお金不要</span><span data-ko>총 공급 · 실제 돈 불필요</span><span data-zh>总供应 · 无需真实资金</span><span data-es>suministro total · Sin dinero real</span></div>
+    <div class="pbar-labels"><span>8% <span data-vi>đã phân phối</span><span data-en>distributed</span><span data-ja>配布済み</span><span data-ko>배포됨</span><span data-zh>已分配</span><span data-es>distribuido</span></span><span>40M / 500M SCFI</span></div>
+    <div class="pbar"><div class="pbar-fill"></div></div>
   </div>
+
   <div class="tiers">
-    <div class="tier-card">
+    <div class="tier">
       <div class="tier-icon">🌱</div>
       <div class="tier-name">Tier 1 · Early Fan</div>
-      <div class="tier-reward">500</div>
-      <div class="tier-token">SCFI</div>
+      <div class="tier-reward">~59 SCFI</div>
+      <div class="tier-token"><span data-vi>Hoàn thành tất cả nhiệm vụ MXH</span><span data-en>Complete all social tasks</span><span data-ja>全ソーシャルタスク完了</span><span data-ko>모든 소셜 작업 완료</span><span data-zh>完成所有社交任务</span><span data-es>Completar todas las tareas sociales</span></div>
       <ul class="tier-tasks">
-        <li data-vi>Follow Twitter/X dự án</li><li data-en>Follow project Twitter/X</li><li data-ja>プロジェクトTwitter/Xをフォロー</li><li data-ko>프로젝트 Twitter/X 팔로우</li><li data-zh>关注项目Twitter/X</li><li data-es>Seguir Twitter/X</li>
-        <li data-vi>Tham gia Discord</li><li data-en>Join Discord</li><li data-ja>Discordに参加</li><li data-ko>Discord 참여</li><li data-zh>加入Discord</li><li data-es>Unirse al Discord</li>
-        <li data-vi>Like + Retweet 1 bài</li><li data-en>Like + Retweet 1 post</li><li data-ja>1投稿いいね＆RT</li><li data-ko>게시물 좋아요+RT</li><li data-zh>点赞+转发1帖</li><li data-es>Like + Retweet 1 post</li>
+        <li data-vi>Follow Twitter (+10)</li><li data-en>Follow Twitter (+10)</li><li data-ja>Twitter フォロー (+10)</li><li data-ko>Twitter 팔로우 (+10)</li><li data-zh>关注Twitter (+10)</li><li data-es>Seguir Twitter (+10)</li>
+        <li data-vi>Join Discord (+12)</li><li data-en>Join Discord (+12)</li><li data-ja>Discord参加 (+12)</li><li data-ko>Discord 참여 (+12)</li><li data-zh>加入Discord (+12)</li><li data-es>Unirse Discord (+12)</li>
+        <li data-vi>Join Telegram (+12)</li><li data-en>Join Telegram (+12)</li><li data-ja>Telegram参加 (+12)</li><li data-ko>Telegram 참여 (+12)</li><li data-zh>加入Telegram (+12)</li><li data-es>Unirse Telegram (+12)</li>
+        <li data-vi>Retweet bài viết (+10)</li><li data-en>Retweet post (+10)</li><li data-ja>リツイート (+10)</li><li data-ko>리트윗 (+10)</li><li data-zh>转发帖子 (+10)</li><li data-es>Retweetear (+10)</li>
+        <li data-vi>Mời bạn bè (+15)</li><li data-en>Invite friend (+15)</li><li data-ja>友達招待 (+15)</li><li data-ko>친구 초대 (+15)</li><li data-zh>邀请朋友 (+15)</li><li data-es>Invitar amigo (+15)</li>
       </ul>
     </div>
-    <div class="tier-card featured">
+    <div class="tier hot">
       <div class="tier-icon">🔥</div>
       <div class="tier-name">Tier 2 · Supporter</div>
-      <div class="tier-reward">2,500</div>
-      <div class="tier-token">SCFI</div>
+      <div class="tier-reward">+50 SCFI</div>
+      <div class="tier-token"><span data-vi>Thêm vào Tier 1</span><span data-en>On top of Tier 1</span><span data-ja>Tier 1に追加</span><span data-ko>Tier 1에 추가</span><span data-zh>在Tier 1基础上</span><span data-es>Además del Tier 1</span></div>
       <ul class="tier-tasks">
-        <li><span data-vi>✓ Tất cả Tier 1</span><span data-en>✓ All Tier 1</span><span data-ja>✓ Tier 1すべて</span><span data-ko>✓ Tier 1 전체</span><span data-zh>✓ 所有Tier 1</span><span data-es>✓ Todo Tier 1</span></li>
-        <li data-vi>Mời 3 bạn bè</li><li data-en>Invite 3 friends</li><li data-ja>友達3人招待</li><li data-ko>친구 3명 초대</li><li data-zh>邀请3位朋友</li><li data-es>Invitar 3 amigos</li>
-        <li data-vi>Đăng bài về StreamFi</li><li data-en>Post about StreamFi</li><li data-ja>StreamFiについて投稿</li><li data-ko>StreamFi 게시물 작성</li><li data-zh>发帖关于StreamFi</li><li data-es>Publicar sobre StreamFi</li>
-        <li data-vi>Tham gia Telegram</li><li data-en>Join Telegram</li><li data-ja>Telegramに参加</li><li data-ko>Telegram 참여</li><li data-zh>加入Telegram</li><li data-es>Unirse al Telegram</li>
-        <li data-vi>Đăng ký Waitlist</li><li data-en>Join Waitlist</li><li data-ja>ウェイトリスト登録</li><li data-ko>대기자 명단 등록</li><li data-zh>加入候补名单</li><li data-es>Unirse a la lista espera</li>
+        <li data-vi>Donate lần đầu (+15)</li><li data-en>First donation (+15)</li><li data-ja>初めての寄付 (+15)</li><li data-ko>첫 기부 (+15)</li><li data-zh>首次打赏 (+15)</li><li data-es>Primera donación (+15)</li>
+        <li data-vi>Xem live 5 phút (+5)</li><li data-en>Watch live 5 min (+5)</li><li data-ja>5分ライブ視聴 (+5)</li><li data-ko>라이브 5분 시청 (+5)</li><li data-zh>看直播5分钟 (+5)</li><li data-es>Ver live 5 min (+5)</li>
+        <li data-vi>Mời 3 bạn bè (+45)</li><li data-en>Invite 3 friends (+45)</li><li data-ja>友達3人招待 (+45)</li><li data-ko>친구 3명 초대 (+45)</li><li data-zh>邀请3位朋友 (+45)</li><li data-es>Invitar 3 amigos (+45)</li>
       </ul>
     </div>
-    <div class="tier-card">
+    <div class="tier">
       <div class="tier-icon">👑</div>
-      <div class="tier-name">Tier 3 · KOL / Creator</div>
-      <div class="tier-reward">15,000</div>
-      <div class="tier-token">SCFI</div>
+      <div class="tier-name">Tier 3 · KOL</div>
+      <div class="tier-reward">+200 SCFI</div>
+      <div class="tier-token"><span data-vi>Thêm vào Tier 1+2</span><span data-en>On top of Tier 1+2</span><span data-ja>Tier 1+2に追加</span><span data-ko>Tier 1+2에 추가</span><span data-zh>在Tier 1+2基础上</span><span data-es>Además del Tier 1+2</span></div>
       <ul class="tier-tasks">
-        <li><span data-vi>✓ Tier 1 + 2</span><span data-en>✓ Tier 1 + 2</span><span data-ja>✓ Tier 1+2</span><span data-ko>✓ Tier 1+2</span><span data-zh>✓ Tier 1+2</span><span data-es>✓ Tier 1+2</span></li>
-        <li data-vi>Đăng ký làm KOL beta</li><li data-en>Register as beta KOL</li><li data-ja>ベータKOL登録</li><li data-ko>베타 KOL 등록</li><li data-zh>注册为测试版KOL</li><li data-es>Registrarse como KOL beta</li>
+        <li data-vi>Đăng ký làm KOL beta</li><li data-en>Register as beta KOL</li><li data-ja>ベータKOL登録</li><li data-ko>베타 KOL 등록</li><li data-zh>注册为测试KOL</li><li data-es>Registrarse como KOL beta</li>
         <li data-vi>Phát 1 buổi livestream</li><li data-en>Host 1 test livestream</li><li data-ja>テスト配信1回</li><li data-ko>테스트 라이브 1회</li><li data-zh>进行1次测试直播</li><li data-es>1 livestream de prueba</li>
-        <li data-vi>Mời 10 fan vào xem</li><li data-en>Invite 10 fans</li><li data-ja>ファン10人招待</li><li data-ko>팬 10명 초대</li><li data-zh>邀请10位粉丝</li><li data-es>Invitar 10 fans</li>
-        <li data-vi>Viết review StreamFi</li><li data-en>Write StreamFi review</li><li data-ja>レビューを書く</li><li data-ko>리뷰 작성</li><li data-zh>撰写评测</li><li data-es>Escribir reseña</li>
+        <li data-vi>Có ít nhất 10 fan xem</li><li data-en>Get 10+ fans watching</li><li data-ja>10人以上のファン</li><li data-ko>팬 10명 이상</li><li data-zh>至少10位粉丝观看</li><li data-es>Al menos 10 fans viendo</li>
       </ul>
-    </div>
-  </div>
-  <!-- Task buttons for logged in users -->
-  <div id="taskButtons" style="display:none;max-width:600px;margin:0 auto 32px;display:none;">
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;">
-      <h3 style="font-size:16px;font-weight:700;margin-bottom:16px;text-align:center;">
-        <span data-vi>✅ Hoàn thành nhiệm vụ để nhận điểm</span>
-        <span data-en>✅ Complete tasks to earn points</span>
-        <span data-ja>✅ タスクを完了してポイントを獲得</span>
-        <span data-ko>✅ 작업 완료하여 포인트 획득</span>
-        <span data-zh>✅ 完成任务获得积分</span>
-        <span data-es>✅ Completa tareas para ganar puntos</span>
-      </h3>
-      <div style="display:flex;flex-direction:column;gap:10px;">
-        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('twitter','Follow Twitter/X',100,'https://x.com/streamfiapp')">
-          𝕏 <span data-vi>Follow @streamfiapp trên Twitter/X</span><span data-en>Follow @streamfiapp on Twitter/X</span><span data-ja>@streamfiappをフォロー</span><span data-ko>@streamfiapp 팔로우</span><span data-zh>关注@streamfiapp</span><span data-es>Seguir @streamfiapp</span>
-          <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+100pts</span>
-        </button>
-        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('discord','Join Discord',150,'https://discord.gg/KZzbwqtv')">
-          ⚔ <span data-vi>Tham gia Discord StreamFi</span><span data-en>Join StreamFi Discord</span><span data-ja>StreamFi Discordに参加</span><span data-ko>StreamFi Discord 참여</span><span data-zh>加入StreamFi Discord</span><span data-es>Unirse al Discord</span>
-          <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+150pts</span>
-        </button>
-        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('telegram','Join Telegram',150,'https://t.me/StreamFi_App')">
-          ✈ <span data-vi>Tham gia Telegram StreamFi</span><span data-en>Join StreamFi Telegram</span><span data-ja>StreamFi Telegramに参加</span><span data-ko>StreamFi Telegram 참여</span><span data-zh>加入StreamFi Telegram</span><span data-es>Unirse al Telegram</span>
-          <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+150pts</span>
-        </button>
-        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('retweet','Retweet post',100,'https://x.com/streamfiapp')">
-          🔁 <span data-vi>Retweet bài viết của StreamFi</span><span data-en>Retweet StreamFi post</span><span data-ja>StreamFiの投稿をRT</span><span data-ko>StreamFi 게시물 리트윗</span><span data-zh>转发StreamFi帖子</span><span data-es>Retweetear publicación</span>
-          <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+100pts</span>
-        </button>
-        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('invite','Invite a friend',200,'')">
-          👥 <span data-vi>Mời 1 bạn bè tham gia</span><span data-en>Invite 1 friend to join</span><span data-ja>友達1人を招待</span><span data-ko>친구 1명 초대</span><span data-zh>邀请1位朋友</span><span data-es>Invitar 1 amigo</span>
-          <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+200pts</span>
-        </button>
-        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('watch','Watch 5min livestream',50,'')">
-          📺 <span data-vi>Xem livestream 5 phút</span><span data-en>Watch livestream 5 minutes</span><span data-ja>5分ライブ視聴</span><span data-ko>라이브 5분 시청</span><span data-zh>观看直播5分钟</span><span data-es>Ver livestream 5 minutos</span>
-          <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+50pts</span>
-        </button>
-        <button class="wallet-action-btn" style="width:100%;text-align:left;padding:12px 16px;" onclick="doTask('donate','First donation',300,'')">
-          🎁 <span data-vi>Donate lần đầu tiên</span><span data-en>Make first donation</span><span data-ja>初めての寄付</span><span data-ko>첫 번째 기부</span><span data-zh>首次打赏</span><span data-es>Primera donación</span>
-          <span style="float:right;color:var(--green);font-family:'Space Mono',monospace;font-size:12px;">+300pts</span>
-        </button>
-      </div>
     </div>
   </div>
 
-  <button class="airdrop-cta-btn" onclick="openLoginModal()">
-    🪂 <span data-vi>Đăng nhập & Nhận Airdrop ngay</span><span data-en>Sign In & Join Airdrop Now</span><span data-ja>サインイン＆エアドロップ参加</span><span data-ko>로그인 & 에어드롭 참여</span><span data-zh>登录并立即参与空投</span><span data-es>Inicia sesión y únete al Airdrop</span>
-  </button>
+  <div style="text-align:center;">
+    <button class="btn-primary" onclick="openLogin()" style="font-size:15px;padding:15px 40px;">
+      🪂 <span data-vi>Tham gia Airdrop ngay</span><span data-en>Join Airdrop Now</span><span data-ja>今すぐ参加</span><span data-ko>지금 참여</span><span data-zh>立即参与</span><span data-es>Participar ahora</span>
+    </button>
+  </div>
 </section>
 
 <!-- COMPARE -->
-<div class="diff-section" id="compare">
-  <div class="section-label"><span data-vi>Tại sao StreamFi?</span><span data-en>Why StreamFi?</span><span data-ja>なぜStreamFi？</span><span data-ko>왜 StreamFi?</span><span data-zh>为什么选StreamFi？</span><span data-es>¿Por qué StreamFi?</span></div>
-  <div class="section-title"><span data-vi>Web2 cắt 30–70% thu nhập của bạn.</span><span data-en>Web2 takes 30–70% of your income.</span><span data-ja>Web2はあなたの収入の30〜70%を奪います。</span><span data-ko>Web2는 수익의 30-70%를 가져갑니다.</span><span data-zh>Web2拿走你30-70%的收入。</span><span data-es>Web2 se lleva el 30-70% de tus ganancias.</span></div>
+<section class="section" id="compare" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="sec-label"><span data-vi>Tại sao StreamFi?</span><span data-en>Why StreamFi?</span><span data-ja>なぜStreamFi？</span><span data-ko>왜 StreamFi?</span><span data-zh>为什么StreamFi？</span><span data-es>¿Por qué StreamFi?</span></div>
+  <div class="sec-title" data-vi>TikTok cắt 70%.<br>StreamFi cắt 0%.</div>
+  <div class="sec-title" data-en>TikTok takes 70%.<br>StreamFi takes 0%.</div>
+  <div class="sec-title" data-ja>TikTokは70%取る。<br>StreamFiは0%。</div>
+  <div class="sec-title" data-ko>TikTok은 70% 가져간다.<br>StreamFi는 0%.</div>
+  <div class="sec-title" data-zh>TikTok拿走70%。<br>StreamFi拿走0%。</div>
+  <div class="sec-title" data-es>TikTok se lleva el 70%.<br>StreamFi se lleva el 0%.</div>
   <div class="compare-grid">
-    <div class="compare-card bad">
+    <div class="cmp bad">
       <h3>❌ TikTok / YouTube</h3>
-      <ul class="compare-list">
-        <li><span class="x">✗</span><span data-vi>Cắt 30–70% thu nhập</span><span data-en>Takes 30–70% revenue</span><span data-ja>収入の30〜70%を差引</span><span data-ko>수익의 30-70% 차감</span><span data-zh>扣除30-70%收入</span><span data-es>Se lleva 30-70% de ingresos</span></li>
-        <li><span class="x">✗</span><span data-vi>Có thể bị ban bất kỳ lúc nào</span><span data-en>Can be banned anytime</span><span data-ja>いつでもBAN可能</span><span data-ko>언제든 계정 정지</span><span data-zh>随时可能被封号</span><span data-es>Pueden banearte en cualquier momento</span></li>
-        <li><span class="x">✗</span><span data-vi>Không sở hữu data người xem</span><span data-en>Don't own audience data</span><span data-ja>視聴者データを所有不可</span><span data-ko>시청자 데이터 미소유</span><span data-zh>不拥有观众数据</span><span data-es>No posees datos de audiencia</span></li>
-        <li><span class="x">✗</span><span data-vi>Thanh toán chậm, nhiều bước</span><span data-en>Slow, multi-step payments</span><span data-ja>支払いが遅く複雑</span><span data-ko>느리고 복잡한 결제</span><span data-zh>支付缓慢步骤繁多</span><span data-es>Pagos lentos y complejos</span></li>
+      <ul>
+        <li><span class="xi">✗</span><span data-vi>Cắt 30–70% thu nhập gift</span><span data-en>Takes 30–70% of gifts</span><span data-ja>ギフトの30〜70%を差引</span><span data-ko>선물의 30-70% 차감</span><span data-zh>扣除礼物的30-70%</span><span data-es>Se lleva 30-70% de los regalos</span></li>
+        <li><span class="xi">✗</span><span data-vi>Bị ban bất kỳ lúc nào</span><span data-en>Can ban you anytime</span><span data-ja>いつでもBAN</span><span data-ko>언제든 계정 정지</span><span data-zh>随时可封号</span><span data-es>Pueden banearte en cualquier momento</span></li>
+        <li><span class="xi">✗</span><span data-vi>Không sở hữu audience</span><span data-en>Don't own your audience</span><span data-ja>視聴者を所有できない</span><span data-ko>시청자를 소유할 수 없음</span><span data-zh>不拥有受众</span><span data-es>No posees tu audiencia</span></li>
+        <li><span class="xi">✗</span><span data-vi>Thanh toán chậm, nhiều bước</span><span data-en>Slow, multi-step payments</span><span data-ja>支払いが遅く複雑</span><span data-ko>느리고 복잡한 결제</span><span data-zh>支付缓慢步骤繁多</span><span data-es>Pagos lentos y complejos</span></li>
       </ul>
     </div>
-    <div class="compare-card good">
+    <div class="cmp good">
       <h3>✅ StreamFi</h3>
-      <ul class="compare-list">
-        <li><span class="check">✓</span><span data-vi>KOL giữ 100% — 0% phí</span><span data-en>Creator keeps 100% — 0% fee</span><span data-ja>100%保持 — 手数料0%</span><span data-ko>100% 유지 — 0% 수수료</span><span data-zh>保留100% — 0%费用</span><span data-es>Creador guarda 100% — 0% tarifa</span></li>
-        <li><span class="check">✓</span><span data-vi>Ví và data thuộc về bạn mãi mãi</span><span data-en>Wallet & data always yours</span><span data-ja>ウォレット＆データは永遠にあなたのもの</span><span data-ko>지갑 & 데이터 영원히 소유</span><span data-zh>钱包和数据永远属于您</span><span data-es>Cartera y datos siempre son tuyos</span></li>
-        <li><span class="check">✓</span><span data-vi>Nhận tiền ngay qua blockchain</span><span data-en>Instant payment via blockchain</span><span data-ja>ブロックチェーン経由で即時支払い</span><span data-ko>블록체인으로 즉시 결제</span><span data-zh>区块链即时支付</span><span data-es>Pago instantáneo vía blockchain</span></li>
-        <li><span class="check">✓</span><span data-vi>Đăng nhập Google — không cần ví</span><span data-en>Google login — no wallet needed</span><span data-ja>Googleログイン — ウォレット不要</span><span data-ko>Google 로그인 — 지갑 불필요</span><span data-zh>Google登录 — 无需钱包</span><span data-es>Login con Google — sin cartera</span></li>
+      <ul>
+        <li><span class="ci">✓</span><span data-vi>KOL giữ 100% — 0% phí</span><span data-en>Creator keeps 100% — 0% fee</span><span data-ja>100%保持 — 手数料0%</span><span data-ko>100% 유지 — 0% 수수료</span><span data-zh>创作者保留100% — 0%费用</span><span data-es>Creador guarda 100% — 0% tarifa</span></li>
+        <li><span class="ci">✓</span><span data-vi>Ví và data thuộc về bạn mãi</span><span data-en>Wallet & data always yours</span><span data-ja>ウォレット＆データは永遠に</span><span data-ko>지갑 & 데이터 영원히 소유</span><span data-zh>钱包和数据永远属于您</span><span data-es>Cartera y datos siempre son tuyos</span></li>
+        <li><span class="ci">✓</span><span data-vi>Nhận tiền ngay qua blockchain</span><span data-en>Instant payment via blockchain</span><span data-ja>ブロックチェーンで即時支払い</span><span data-ko>블록체인으로 즉시 결제</span><span data-zh>区块链即时支付</span><span data-es>Pago instantáneo vía blockchain</span></li>
+        <li><span class="ci">✓</span><span data-vi>Đăng nhập Google, không cần ví</span><span data-en>Google login, no wallet needed</span><span data-ja>Googleログイン、ウォレット不要</span><span data-ko>Google 로그인, 지갑 불필요</span><span data-zh>Google登录，无需钱包</span><span data-es>Login con Google, sin cartera</span></li>
       </ul>
     </div>
   </div>
-</div>
+</section>
 
 <!-- CHAINS -->
-<div class="chains" id="chains">
-  <p><span data-vi>Đang xây dựng trên</span><span data-en>Building on</span><span data-ja>構築中</span><span data-ko>구축 중</span><span data-zh>正在构建</span><span data-es>Construyendo en</span></p>
+<div class="chains">
+  <div class="chains-label"><span data-vi>Đang xây dựng trên</span><span data-en>Building on</span><span data-ja>構築中</span><span data-ko>구축 중</span><span data-zh>正在构建</span><span data-es>Construyendo en</span></div>
   <div class="chain-list">
-    <div class="chain-tag" onclick="showToast('🔵 Base — $0.001/tx, Coinbase backed!')">🔵 Base</div>
+    <div class="chain-tag" onclick="showToast('🔵 Base — $0.001/tx, backed by Coinbase!')">🔵 Base (Coinbase L2)</div>
     <div class="chain-tag" onclick="showToast('🟣 Solana — Fast & cheap!')">🟣 Solana</div>
     <div class="chain-tag" onclick="showToast('🟢 Mint Blockchain — Built for Social!')">🟢 Mint Blockchain</div>
   </div>
@@ -605,285 +755,247 @@ body.lang-es [data-vi]{display:none;}body.lang-es [data-es]{display:revert;}
 
 <!-- CTA -->
 <section class="cta-section">
-  <h2><span data-vi>Sẵn sàng kiếm 100%?</span><span data-en>Ready to earn 100%?</span><span data-ja>100%稼ぐ準備は？</span><span data-ko>100% 수익 준비됐나요?</span><span data-zh>准备好赚取100%了吗？</span><span data-es>¿Listo para ganar el 100%?</span></h2>
-  <p><span data-vi>Tham gia ngay — miễn phí, không cần thẻ ngân hàng.</span><span data-en>Join now — free, no credit card required.</span><span data-ja>今すぐ参加 — 無料、クレジットカード不要。</span><span data-ko>지금 참여 — 무료, 신용카드 불필요.</span><span data-zh>立即加入 — 免费，无需信用卡。</span><span data-es>Únete ahora — gratis, sin tarjeta.</span></p>
-  <div class="hero-btns" style="justify-content:center">
-    <button class="btn-primary" onclick="openLoginModal()">
-      🎤 <span data-vi>Đăng nhập ngay</span><span data-en>Sign In Now</span><span data-ja>今すぐサインイン</span><span data-ko>지금 로그인</span><span data-zh>立即登录</span><span data-es>Iniciar sesión ahora</span>
-    </button>
-    <button class="btn-secondary" onclick="document.getElementById('airdrop').scrollIntoView({behavior:'smooth'})">
-      🪂 Airdrop
-    </button>
+  <h2><span data-vi>Sẵn sàng kiếm 100%?</span><span data-en>Ready to earn 100%?</span><span data-ja>100%稼ぐ準備は？</span><span data-ko>100% 벌 준비됐나요?</span><span data-zh>准备好赚取100%了吗？</span><span data-es>¿Listo para ganar el 100%?</span></h2>
+  <p><span data-vi>Tham gia miễn phí — không cần thẻ ngân hàng, không cần ví crypto.</span><span data-en>Join free — no credit card, no crypto wallet needed.</span><span data-ja>無料参加 — クレジットカードもウォレットも不要。</span><span data-ko>무료 참여 — 신용카드, 암호화폐 지갑 불필요.</span><span data-zh>免费加入 — 无需信用卡，无需加密钱包。</span><span data-es>Únete gratis — sin tarjeta de crédito, sin cartera crypto.</span></p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+    <button class="btn-primary" onclick="openLogin()" style="font-size:15px;padding:15px 36px;">🎤 <span data-vi>Đăng nhập ngay</span><span data-en>Sign In Now</span><span data-ja>今すぐサインイン</span><span data-ko>지금 로그인</span><span data-zh>立即登录</span><span data-es>Iniciar sesión ahora</span></button>
+    <button class="btn-outline" onclick="document.getElementById('airdrop').scrollIntoView({behavior:'smooth'})" style="font-size:15px;padding:15px 36px;">🪂 Airdrop</button>
   </div>
 </section>
 
 <footer>
-  <div class="logo">StreamFi</div>
-  <p style="font-size:13px;color:var(--muted)"><span data-vi>MVP · Base Sepolia Testnet · Powered by Privy</span><span data-en>MVP · Base Sepolia Testnet · Powered by Privy</span><span data-ja>MVP · Base Sepolia テストネット · Privy提供</span><span data-ko>MVP · Base Sepolia 테스트넷 · Privy 제공</span><span data-zh>MVP · Base Sepolia测试网 · 由Privy提供支持</span><span data-es>MVP · Base Sepolia Testnet · Con tecnología de Privy</span></p>
+  <div class="logo" style="font-size:16px;"><div class="logo-dot"></div>StreamFi</div>
+  <p style="font-size:11px;color:var(--muted);">MVP · Base Sepolia Testnet · Powered by Privy & Livepeer</p>
   <div class="footer-links">
-    <a href="https://x.com/streamfiapp" target="_blank" onclick="showToast('🐦 Opening Twitter/X...')">Twitter/X</a>
-    <a href="https://discord.gg/KZzbwqtv" target="_blank" onclick="showToast('💬 Opening Discord...')">Discord</a>
-    <a href="https://t.me/StreamFi_App" target="_blank" onclick="showToast('✈ Opening Telegram...')">Telegram</a>
+    <a href="https://x.com/streamfiapp" target="_blank">Twitter/X</a>
+    <a href="https://discord.gg/KZzbwqtv" target="_blank">Discord</a>
+    <a href="https://t.me/StreamFi_App" target="_blank">Telegram</a>
   </div>
 </footer>
 
 <script>
-// ============ CONFIG ============
-const PRIVY_APP_ID = 'cmq7mwd29006q0ckvxsk5odjs';
-const SCFI_CONTRACT = '';
-const SUPABASE_URL = 'https://zjsiicjywpqjvpgkxgzx.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpqc2lpY2p5d3BxanZwZ2t4Z3p4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyNjZDMzEsImV4cCI6MjA2Mzg0MjMzMX0._1rRuEp6wkXHkdqU-2rNf-FxBVMbuuo6A0ZtBy9wYtY';
-const LIVEPEER_PLAYBACK = 'https://livepeercdn.studio/hls/b5b5nslpak0wwaec/index.m3u8';
-const LIVEPEER_BROADCAST = 'https://lvpr.tv/broadcast/b5b5-rg72-i9wk-opc8';
-// ================================
+// ===== CONFIG =====
+const SUPABASE_URL='https://zjsiicjywpqjvpgkxgzx.supabase.co';
+const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpqc2lpY2p5d3BxanZwZ2t4Z3p4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDgyNjYzMzEsImV4cCI6MjA2Mzg0MjMzMX0._1rRuEp6wkXHkdqU-2rNf-FxBVMbuuo6A0ZtBy9wYtY';
 
-// Supabase: lưu user mới
-async function saveUserToSupabase(user) {
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/users`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_KEY,
-        'Prefer': 'resolution=merge-duplicates'
-      },
-      body: JSON.stringify({
-        email: user.email || null,
-        wallet_address: user.address,
-        tier: 1,
-        points: 500,
-        username: user.name,
-        provider: user.provider
-      })
-    });
-    if (res.ok || res.status === 201) {
-      showToast('🎉 Đăng ký thành công! +500 điểm Airdrop Tier 1!');
-    }
-  } catch(e) { console.log('Supabase:', e); }
+// ===== STATE =====
+let user=null, bal=0, pts=0, pendingTask=null;
+const done=new Set();
+
+// ===== LANG =====
+function setLang(l,b){document.body.className='lang-'+l;document.querySelectorAll('.lang-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');}
+
+// ===== TOAST =====
+function showToast(m){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);}
+
+// ===== MODALS =====
+function openLogin(){
+  const cb=document.getElementById('termsChk');
+  const ab=document.getElementById('agreeBtn');
+  if(cb)cb.checked=false;
+  if(ab){ab.disabled=true;}
+  document.getElementById('termsModal').classList.add('open');
 }
-
-// Supabase: cộng điểm khi hoàn thành nhiệm vụ
-async function addAirdropPoints(walletAddress, points, taskName) {
-  try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/users?wallet_address=eq.${walletAddress}&select=points`, {
-      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-    });
-    const data = await res.json();
-    if (data && data[0]) {
-      const newPoints = (data[0].points || 0) + points;
-      await fetch(`${SUPABASE_URL}/rest/v1/users?wallet_address=eq.${walletAddress}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_KEY,
-          'Authorization': 'Bearer ' + SUPABASE_KEY
-        },
-        body: JSON.stringify({ points: newPoints })
-      });
-      showToast('✅ ' + taskName + ' +' + points + ' điểm!');
-    }
-  } catch(e) { console.log('Points error:', e); }
-}
-
-// State
-let currentUser = null;
-let userWalletBalance = 1000; // demo balance
-
-// Language
-function setLang(lang, btn) {
-  document.body.className = 'lang-' + lang;
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-// Toast
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  document.getElementById('toastMsg').textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3200);
-}
-
-// Login Modal
-function openLoginModal() {
+function goToLogin(){
+  document.getElementById('termsModal').classList.remove('open');
   document.getElementById('loginModal').classList.add('open');
 }
-function closeLoginModal() {
-  document.getElementById('loginModal').classList.remove('open');
+function closeAll(){
+  ['termsModal','loginModal','verifyModal'].forEach(id=>document.getElementById(id).classList.remove('open'));
 }
-document.getElementById('loginModal').addEventListener('click', function(e) {
-  if (e.target === this) closeLoginModal();
-});
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)closeAll();}));
 
-// Login handler
-function loginWith(provider) {
-  closeLoginModal();
-  showToast('⏳ Connecting to ' + provider + '...');
-
-  // Simulate login (replace with real Privy SDK call)
-  setTimeout(() => {
-    const mockUser = {
-      provider: provider,
-      name: provider === 'google' ? 'Nguyễn Văn A' :
-            provider === 'twitter' ? '@your_twitter' :
-            provider === 'discord' ? 'YourDiscord#0001' :
-            provider === 'metamask' ? 'MetaMask User' : 'Phantom User',
-      address: '0x' + Math.random().toString(16).substr(2,8) + '...' + Math.random().toString(16).substr(2,4),
-      avatar: provider === 'google' ? '🇬' :
-              provider === 'twitter' ? '𝕏' :
-              provider === 'discord' ? '⚔' :
-              provider === 'metamask' ? '🦊' : '👻'
+// ===== LOGIN =====
+function loginWith(provider){
+  closeAll();
+  showToast('⏳ Đang kết nối '+provider+'...');
+  setTimeout(()=>{
+    const icons={google:'🇬',twitter:'𝕏',discord:'⚔',tiktok:'♪',metamask:'🦊',phantom:'👻'};
+    const names={google:'Google User',twitter:'@your_twitter',discord:'DiscordUser#001',tiktok:'@tiktok_user',metamask:'MetaMask User',phantom:'Phantom User'};
+    const u={
+      provider,name:names[provider]||provider,
+      address:'0x'+Math.random().toString(16).substr(2,8)+'...'+Math.random().toString(16).substr(2,4),
+      avatar:icons[provider]||'👤'
     };
-    onLoginSuccess(mockUser);
-  }, 1200);
+    onLogin(u);
+  },1200);
 }
 
-function onLoginSuccess(user) {
-  currentUser = user;
+function onLogin(u){
+  user=u;
+  // Load saved state
+  const savedDone=JSON.parse(localStorage.getItem('sf_done_'+u.address)||'[]');
+  savedDone.forEach(t=>done.add(t));
+  bal=parseInt(localStorage.getItem('sf_bal_'+u.address)||'0');
+  pts=parseInt(localStorage.getItem('sf_pts_'+u.address)||'0');
 
   // Update nav
-  document.getElementById('navLoggedOut').style.display = 'none';
-  const loggedIn = document.getElementById('navLoggedIn');
-  loggedIn.style.display = 'flex';
-  document.getElementById('userAvatar').textContent = user.avatar;
-  document.getElementById('userName').textContent = user.name;
-  document.getElementById('userAddr').textContent = user.address;
-  document.getElementById('userBal').textContent = userWalletBalance.toLocaleString() + ' SCFI';
+  document.getElementById('navOut').style.display='none';
+  const ni=document.getElementById('navIn');ni.style.display='flex';
+  document.getElementById('uAvatar').textContent=u.avatar;
+  document.getElementById('uName').textContent=u.name;
+  document.getElementById('uAddr').textContent=u.address;
+  document.getElementById('uBal').textContent=bal+' SCFI';
 
-  // Show wallet section
-  const ws = document.getElementById('walletSection');
-  ws.style.display = 'block';
-  document.getElementById('walletAddr').textContent = user.address;
-  document.getElementById('walletBalance').textContent = userWalletBalance.toLocaleString() + ' SCFI';
+  // Wallet bar
+  const wb=document.getElementById('walletBar');wb.style.display='block';
+  document.getElementById('wAddr').textContent=u.address;
+  document.getElementById('wBal').textContent=bal+' SCFI';
+  document.getElementById('wPts').textContent=pts+' pts';
 
-  // Enable donate buttons
-  ['gift10','gift100','gift500'].forEach(id => {
-    document.getElementById(id).disabled = false;
-  });
+  // Enable gift buttons
+  ['g10','g15','g50'].forEach(id=>{document.getElementById(id).disabled=false;});
 
-  // Show task buttons
-  const tb = document.getElementById('taskButtons');
-  if (tb) tb.style.display = 'block';
-  // Show KOL go live button
-  showKolControls();
+  // Show progress
+  document.getElementById('progressWrap').style.display='block';
 
-  showToast('✅ Đăng nhập thành công! Chào ' + user.name);
-  // Lưu vào Supabase
-  saveUserToSupabase(user);
+  // Restore task UI
+  restoreTasks();
+  updateProgress();
+
+  // Hide early btn, show progress
+  document.getElementById('earlyBtn').style.display='none';
+
+  showToast('✅ Chào '+u.name+'! Ví đã sẵn sàng.');
+  saveUser(u);
 }
 
-function logoutUser() {
-  currentUser = null;
-  userWalletBalance = 1000;
-
-  document.getElementById('navLoggedOut').style.display = 'block';
-  document.getElementById('navLoggedIn').style.display = 'none';
-  document.getElementById('walletSection').style.display = 'none';
-
+function logoutUser(){
+  user=null;bal=0;pts=0;done.clear();
+  document.getElementById('navOut').style.display='block';
+  document.getElementById('navIn').style.display='none';
+  document.getElementById('walletBar').style.display='none';
+  document.getElementById('earlyBtn').style.display='block';
+  document.getElementById('progressWrap').style.display='none';
+  ['g10','g15','g50'].forEach(id=>{document.getElementById(id).disabled=true;});
+  restoreTasks();
   showToast('👋 Đã đăng xuất!');
 }
 
-// Gift donation
-const chatNames = ['@web3fan_vn','@cryptolover','@streamfi_user','@korvn','@hodler99','@nftcollector'];
-function sendGift(amount, emoji) {
-  if (!currentUser) {
-    openLoginModal();
-    showToast('🔑 Vui lòng đăng nhập để donate!');
-    return;
-  }
-  if (userWalletBalance < amount) {
-    showToast('❌ Số dư không đủ! Cần ' + amount + ' SCFI');
-    return;
-  }
+// ===== TASKS =====
+const taskInst={
+  twitter:'1. Bấm nút bên dưới để mở Twitter/X\n2. Follow trang @streamfiapp\n3. Quay lại đây bấm "Đã xong! Nhận SCFI"',
+  discord:'1. Bấm nút bên dưới để mở Discord\n2. Bấm Join/Tham gia server StreamFi\n3. Quay lại đây bấm "Đã xong! Nhận SCFI"',
+  telegram:'1. Bấm nút bên dưới để mở Telegram\n2. Bấm Join/Tham gia group @StreamFi_App\n3. Quay lại đây bấm "Đã xong! Nhận SCFI"',
+  retweet:'1. Bấm nút để mở trang Twitter StreamFi\n2. Retweet bài viết mới nhất\n3. Quay lại đây bấm "Đã xong! Nhận SCFI"',
+  invite:'1. Copy link: streamfi-iota.vercel.app\n2. Gửi cho bạn bè và nhờ họ đăng nhập\n3. Quay lại đây bấm "Đã xong! Nhận SCFI"'
+};
 
-  userWalletBalance -= amount;
-  document.getElementById('userBal').textContent = userWalletBalance.toLocaleString() + ' SCFI';
-  document.getElementById('walletBalance').textContent = userWalletBalance.toLocaleString() + ' SCFI';
-
-  const chat = document.getElementById('chatMessages');
-  const div = document.createElement('div');
-  div.className = 'chat-msg donate-msg';
-  div.innerHTML = '<div class="chat-user">' + (currentUser.name) + '</div><div>→ <span class="donate-amount">' + amount + ' SCFI</span> ' + emoji + '</div>';
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-  if (chat.children.length > 10) chat.removeChild(chat.children[0]);
-
-  const vc = document.getElementById('viewerCount');
-  const cur = parseInt(vc.textContent.replace(',',''));
-  vc.textContent = (cur + Math.floor(Math.random()*3+1)).toLocaleString();
-
-  showToast(emoji + ' Donated ' + amount + ' SCFI! Còn lại: ' + userWalletBalance.toLocaleString() + ' SCFI');
+function doSocialTask(id,name,scfi,link){
+  if(!user){openLogin();showToast('🔑 Vui lòng đăng nhập trước!');return;}
+  if(done.has(id)){showToast('⚠️ Nhiệm vụ này đã hoàn thành!');return;}
+  if(link)window.open(link,'_blank');
+  pendingTask={id,name,scfi};
+  document.getElementById('vTitle').textContent='🔍 '+name+' (+'+scfi+' SCFI)';
+  document.getElementById('vDesc').textContent='Hoàn thành bước sau rồi bấm "Đã xong":';
+  document.getElementById('vInst').textContent=taskInst[id]||'Hoàn thành nhiệm vụ rồi bấm Đã xong.';
+  document.getElementById('verifyModal').classList.add('open');
 }
 
-// Task completion
-const completedTasks = new Set();
-function doTask(taskId, taskName, points, link) {
-  if (!currentUser) { openLoginModal(); showToast('🔑 Vui lòng đăng nhập trước!'); return; }
-  if (completedTasks.has(taskId)) { showToast('⚠️ Đã hoàn thành nhiệm vụ này rồi!'); return; }
-  completedTasks.add(taskId);
-  userWalletBalance += points * 10;
-  document.getElementById('userBal').textContent = userWalletBalance.toLocaleString() + ' SCFI';
-  document.getElementById('walletBalance').textContent = userWalletBalance.toLocaleString() + ' SCFI';
-  addAirdropPoints(currentUser.address, points, taskName);
-  if (link) window.open(link, '_blank');
-  try {
-    const btn = event.target.closest('button');
-    btn.style.borderColor = 'var(--green)';
-    btn.style.background = 'rgba(16,185,129,0.1)';
-    btn.disabled = true;
-  } catch(e) {}
+function confirmTask(){
+  if(!pendingTask||!user)return;
+  const {id,name,scfi}=pendingTask;
+  done.add(id);
+  bal+=scfi; pts+=scfi;
+  localStorage.setItem('sf_done_'+user.address,JSON.stringify([...done]));
+  localStorage.setItem('sf_bal_'+user.address,bal);
+  localStorage.setItem('sf_pts_'+user.address,pts);
+  // Update UI
+  document.getElementById('uBal').textContent=bal+' SCFI';
+  document.getElementById('wBal').textContent=bal+' SCFI';
+  document.getElementById('wPts').textContent=pts+' pts';
+  markTask(id);
+  updateProgress();
+  document.getElementById('verifyModal').classList.remove('open');
+  pendingTask=null;
+  showToast('🎉 +'+scfi+' SCFI! '+name+' hoàn thành!');
+  addPoints(user.address,scfi,name);
 }
 
-// ===== LIVESTREAM =====
-function initHLSPlayer() {
-  const video = document.getElementById('liveVideo');
-  const overlay = document.getElementById('offlineOverlay');
-  if (!video) return;
+function markTask(id){
+  const el=document.getElementById('st-'+id);
+  const ss=document.getElementById('ss-'+id);
+  if(el){el.classList.add('done');el.style.pointerEvents='none';}
+  if(ss){ss.textContent='✅ Done';}
+}
 
-  if (Hls.isSupported()) {
-    const hls = new Hls({ lowLatencyMode: true });
-    hls.loadSource(LIVEPEER_PLAYBACK);
-    hls.attachMedia(video);
-    hls.on(Hls.Events.MANIFEST_PARSED, () => {
-      video.play();
-      overlay.style.display = 'none';
-      document.getElementById('viewerCount').textContent = Math.floor(Math.random()*50+5);
-      showToast('📺 Livestream đang hoạt động!');
+function restoreTasks(){
+  ['twitter','discord','telegram','retweet','invite'].forEach(id=>{
+    const el=document.getElementById('st-'+id);
+    const ss=document.getElementById('ss-'+id);
+    if(done.has(id)){
+      if(el){el.classList.add('done');el.style.pointerEvents='none';}
+      if(ss)ss.textContent='✅ Done';
+    } else {
+      if(el){el.classList.remove('done');el.style.pointerEvents=user?'auto':'none';}
+      if(ss)ss.textContent='';
+    }
+  });
+}
+
+function updateProgress(){
+  const count=done.size;
+  const pct=Math.min(count/5*100,100);
+  document.getElementById('progressFill').style.width=pct+'%';
+  document.getElementById('tasksCount').textContent=count;
+  document.getElementById('totalEarned').textContent=bal+' SCFI';
+}
+
+// ===== SUPABASE =====
+async function saveUser(u){
+  try{
+    await fetch(SUPABASE_URL+'/rest/v1/users',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Prefer':'resolution=merge-duplicates'},
+      body:JSON.stringify({wallet_address:u.address,username:u.name,provider:u.provider,tier:1,points:0})
     });
-    hls.on(Hls.Events.ERROR, (e, data) => {
-      if (data.fatal) overlay.style.display = 'flex';
-    });
-  } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    video.src = LIVEPEER_PLAYBACK;
-    video.addEventListener('loadedmetadata', () => {
-      video.play();
-      overlay.style.display = 'none';
-    });
+  }catch(e){console.log('Supabase:',e);}
+}
+
+async function addPoints(addr,p,task){
+  try{
+    const r=await fetch(SUPABASE_URL+'/rest/v1/users?wallet_address=eq.'+addr+'&select=points',{headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY}});
+    const d=await r.json();
+    if(d&&d[0]){
+      await fetch(SUPABASE_URL+'/rest/v1/users?wallet_address=eq.'+addr,{
+        method:'PATCH',
+        headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY},
+        body:JSON.stringify({points:(d[0].points||0)+p})
+      });
+    }
+  }catch(e){console.log('Points:',e);}
+}
+
+// ===== GIFT/DONATE =====
+const chatNames=['@web3fan','@cryptolover','@streamfi_vn','@hodler','@nftcollector'];
+function sendGift(amt,emoji){
+  if(!user){openLogin();return;}
+  if(bal<amt){showToast('❌ Số dư không đủ! Cần '+amt+' SCFI');return;}
+  bal-=amt;
+  document.getElementById('uBal').textContent=bal+' SCFI';
+  document.getElementById('wBal').textContent=bal+' SCFI';
+  localStorage.setItem('sf_bal_'+user.address,bal);
+  const chat=document.getElementById('chatMsgs');
+  const d=document.createElement('div');d.className='cmsg cdonate';
+  d.innerHTML='<div class="cu">'+user.name+'</div><div>→ <span class="camt">'+amt+' SCFI</span> '+emoji+'</div>';
+  chat.appendChild(d);chat.scrollTop=chat.scrollHeight;
+  if(chat.children.length>8)chat.removeChild(chat.children[0]);
+  const vc=document.getElementById('viewerCount');
+  vc.textContent=(parseInt(vc.textContent.replace(',',''))+Math.floor(Math.random()*3+1)).toLocaleString();
+  showToast(emoji+' Donated '+amt+' SCFI!');
+
+  // Auto-complete donate task
+  if(!done.has('donate')){
+    done.add('donate');
+    localStorage.setItem('sf_done_'+user.address,JSON.stringify([...done]));
+    showToast('🎉 +15 SCFI bonus cho lần donate đầu tiên!');
   }
 }
 
-function goLive() {
-  window.open(LIVEPEER_BROADCAST, '_blank');
-  showToast('🎤 Trang phát live đã mở! Cho phép camera và bắt đầu!');
-}
-
-// Show Go Live button when logged in as KOL
-function showKolControls() {
-  const kc = document.getElementById('kolControls');
-  if (kc) kc.style.display = 'block';
-}
-
-// Init HLS on page load
-window.addEventListener('load', () => {
-  initHLSPlayer();
-  // Refresh stream check every 30 seconds
-  setInterval(initHLSPlayer, 30000);
-});
-
-// Init — disable donate buttons until login
-['gift10','gift100','gift500'].forEach(id => {
-  document.getElementById(id).disabled = true;
+// ===== INIT =====
+document.body.className='lang-vi';
+document.querySelectorAll('[data-vi]').forEach(el=>{
+  // pointer events for social tasks when not logged in
 });
 </script>
 </body>
