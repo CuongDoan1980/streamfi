@@ -943,11 +943,18 @@ function loginWith(provider){
   setTimeout(()=>{
     const icons={google:'🇬',twitter:'𝕏',discord:'⚔',tiktok:'♪',metamask:'🦊',phantom:'👻'};
     const names={google:'Google User',twitter:'@your_twitter',discord:'DiscordUser#001',tiktok:'@tiktok_user',metamask:'MetaMask User',phantom:'Phantom User'};
-    const u={
-      provider,name:names[provider]||provider,
-      address:'0x'+Math.random().toString(16).substr(2,8)+'...'+Math.random().toString(16).substr(2,4),
-      avatar:icons[provider]||'👤'
-    };
+    // Reuse existing session for this provider if it exists, so reloads keep the same wallet
+    const sessionKey='sf_session_'+provider;
+    let u=JSON.parse(localStorage.getItem(sessionKey)||'null');
+    if(!u){
+      u={
+        provider,name:names[provider]||provider,
+        address:'0x'+Math.random().toString(16).substr(2,8)+'...'+Math.random().toString(16).substr(2,4),
+        avatar:icons[provider]||'👤'
+      };
+      localStorage.setItem(sessionKey,JSON.stringify(u));
+    }
+    localStorage.setItem('sf_active_session',sessionKey);
     onLogin(u);
   },1200);
 }
@@ -1008,6 +1015,7 @@ function onLogin(u){
 }
 
 function logoutUser(){
+  localStorage.removeItem('sf_active_session');
   user=null;bal=0;pts=0;done.clear();
   document.getElementById('navOut').style.display='block';
   document.getElementById('navIn').style.display='none';
@@ -1146,10 +1154,17 @@ function showOfflineState(){
 // KOL Start Live — uses browser camera
 async function startLive(){
   if(!user){openLogin();return;}
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    showToast('❌ Trình duyệt không hỗ trợ camera. Cần HTTPS + Chrome/Edge/Safari mới nhất.');
+    return;
+  }
   const perm=document.getElementById('camPermission');
   perm.style.display='flex';
+  // Safety net: if browser never resolves the prompt, hide overlay after 20s
+  const safetyTimer=setTimeout(()=>{perm.style.display='none';},20000);
   try{
     mediaStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:true});
+    clearTimeout(safetyTimer);
     perm.style.display='none';
     const cam=document.getElementById('camPreview');
     cam.srcObject=mediaStream;
@@ -1166,9 +1181,12 @@ async function startLive(){
     addChatMessage('🎙️ System','Buổi live của bạn đã bắt đầu!','system');
     showToast('🔴 Bạn đang phát LIVE! Camera đã bật.');
   }catch(e){
+    clearTimeout(safetyTimer);
     perm.style.display='none';
     if(e.name==='NotAllowedError'){
-      showToast('❌ Cần cho phép truy cập camera để live!');
+      showToast('❌ Cần cho phép truy cập camera để live! Kiểm tra biểu tượng 🔒/📷 trên thanh địa chỉ trình duyệt.');
+    } else if(e.name==='NotFoundError'){
+      showToast('❌ Không tìm thấy camera/microphone trên thiết bị này.');
     } else {
       showToast('❌ Lỗi camera: '+e.message);
     }
@@ -1245,6 +1263,12 @@ function showDonateEffect(emoji,amount,name){
 // Init on load
 window.addEventListener('load',()=>{
   initViewer();
+  // Restore session if user was already logged in
+  const activeKey=localStorage.getItem('sf_active_session');
+  if(activeKey){
+    const saved=JSON.parse(localStorage.getItem(activeKey)||'null');
+    if(saved){onLogin(saved);}
+  }
 });
 
 // Show KOL controls after login
@@ -1361,6 +1385,11 @@ function saveProfile() {
   user.name = username;
   document.getElementById('uName').textContent = username;
   document.getElementById('kolNameEl').textContent = username;
+
+  // Persist updated name in the saved session
+  const sessionKey='sf_session_'+user.provider;
+  const savedSession=JSON.parse(localStorage.getItem(sessionKey)||'null');
+  if(savedSession){savedSession.name=username;localStorage.setItem(sessionKey,JSON.stringify(savedSession));}
 
   // Save to Supabase
   saveUserProfile(user.address, profile);
